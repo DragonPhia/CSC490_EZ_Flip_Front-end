@@ -16,7 +16,7 @@ struct ContentView: View {
             
             //EZ_Flip-removebg-preview 1
             Image("EZ_Flip-removebg-preview 1")
-                .resizable().scaledToFill().frame(width: 400, height: 350)
+                .resizable().scaledToFill().frame(width: 380, height: 350)
         
             ZStack {
                 // Background border box
