@@ -8,89 +8,80 @@
 import SwiftUI
 
 struct SearchView: View {
-    @State private var searchText = ""
-    @State private var results: [EbayItem] = []
-    @State private var isLoading = false
+    @StateObject private var viewModel = SearchViewModel()
 
     var body: some View {
         NavigationStack {
-            GeometryReader { geometry in
-                VStack {
-                    HStack {
-                        TextField("Search for an item...", text: $searchText, onCommit: fetchResults)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                            .padding(.leading)
+            VStack {
+                HStack {
+                    TextField("Search for an item...", text: $viewModel.searchText, onCommit: viewModel.fetchResults)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .padding(.leading)
 
-                        Button(action: fetchResults) {
-                            Image(systemName: "magnifyingglass")
-                                .padding(10)
-                                .background(Color.blue.opacity(0.8))
-                                .foregroundColor(.white)
-                                .clipShape(Circle())
-                        }
-                        .padding(.trailing)
+                    Button(action: viewModel.fetchResults) {
+                        Image(systemName: "magnifyingglass")
+                            .padding(10)
+                            .background(Color.blue.opacity(0.8))
+                            .foregroundColor(.white)
+                            .clipShape(Circle())
                     }
-                    .padding(.top, 10)
+                    .padding(.trailing)
+                }
+                .padding(.top, 10)
 
-                    ScrollView {
-                        if isLoading {
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 10) {
+                        if viewModel.isLoading {
                             ProgressView("Searching...")
                                 .padding()
-                        } else if results.isEmpty && !searchText.isEmpty {
+                        } else if viewModel.results.isEmpty && !viewModel.searchText.isEmpty {
                             Text("No results found.")
                                 .foregroundColor(.gray)
                                 .padding()
                         } else {
-                            LazyVStack {
-                                ForEach(results) { item in
-                                    HStack {
+                            ForEach(viewModel.results) { item in
+                                VStack {
+                                    HStack(alignment: .top, spacing: 10) {
                                         if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
                                             AsyncImage(url: url) { image in
                                                 image.resizable().scaledToFit()
                                             } placeholder: {
                                                 ProgressView()
                                             }
-                                            .frame(width: 50, height: 50)
+                                            .frame(width: 100, height: 100)
+                                            .cornerRadius(8)
+                                            .padding(.leading)
                                         }
 
-                                        VStack(alignment: .leading) {
+                                        VStack(alignment: .leading, spacing: 5) {
                                             Text(item.title)
                                                 .font(.headline)
+                                                .multilineTextAlignment(.leading)
                                             Text("\(item.price.currency) \(item.price.value)")
                                                 .font(.subheadline)
                                                 .foregroundColor(.gray)
                                         }
+                                        Spacer()
                                     }
-                                    .padding(.vertical, 5)
+                                    .padding()
                                 }
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .shadow(radius: 3)
+                                .padding(.horizontal)
+                                .frame(maxWidth: .infinity, minHeight: 120)
                             }
                         }
                     }
-                    .frame(height: geometry.size.height * 0.85) // Adjust height dynamically
                 }
-                .ignoresSafeArea(.keyboard) // Prevents keyboard from pushing the view
+                .frame(maxHeight: .infinity)
+                .clipped()
             }
+            .ignoresSafeArea(.keyboard)
             .navigationTitle("Find Item")
             .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-
-    func fetchResults() {
-        guard !searchText.isEmpty else { return }
-
-        isLoading = true
-        APIService.shared.searchItems(query: searchText) { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                switch result {
-                case .success(let items):
-                    self.results = items
-                case .failure(let error):
-                    print("Error fetching eBay results: \(error.localizedDescription)")
-                }
-            }
         }
     }
 }
