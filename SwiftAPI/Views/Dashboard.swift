@@ -10,7 +10,12 @@ import SwiftUI
 struct Dashboard: View {
 
     init() {
-        UITabBar.appearance().backgroundColor = UIColor.black
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.black
+        
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
         UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray
     }
 

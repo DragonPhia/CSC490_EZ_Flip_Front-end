@@ -13,26 +13,39 @@ struct SearchView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                HStack {
-                    TextField("Search for an item...", text: $viewModel.searchText, onCommit: viewModel.fetchResults)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .padding(.leading)
+                Text("Find Items")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding()
 
-                    Button(action: viewModel.fetchResults) {
+                HStack {
+                    HStack {
                         Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                        TextField("Search for an item...", text: $viewModel.searchText, onCommit: viewModel.fetchResults)
+                            .padding(7)
+                    }
+                    .padding(10)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .frame(maxWidth: .infinity)
+
+                    NavigationLink(destination: VisualScanView()) {
+                        Image(systemName: "camera")
                             .padding(10)
-                            .background(Color.blue.opacity(0.8))
+                            .background(Color.green.opacity(0.8))
                             .foregroundColor(.white)
                             .clipShape(Circle())
                     }
-                    .padding(.trailing)
                 }
-                .padding(.top, 10)
+                .frame(maxWidth: 400) // Set a max width to center the search bar
+                .padding(.horizontal)
+                .frame(maxWidth: .infinity, alignment: .center) // Centers the HStack
 
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: 10) {
+                        Color.clear.frame(height: 10) // Acts as top padding
+                        
                         if viewModel.isLoading {
                             ProgressView("Searching...")
                                 .padding()
@@ -76,12 +89,11 @@ struct SearchView: View {
                         }
                     }
                 }
+                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 20) }
                 .frame(maxHeight: .infinity)
                 .clipped()
             }
             .ignoresSafeArea(.keyboard)
-            .navigationTitle("Find Item")
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
