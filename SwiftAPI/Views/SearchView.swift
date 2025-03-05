@@ -9,15 +9,14 @@ import SwiftUI
 
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
+    
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = false
 
     var body: some View {
         NavigationStack {
             VStack {
-                Text("Find Items")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding()
-
+                
+                
                 HStack {
                     HStack {
                         Image(systemName: "magnifyingglass")
@@ -29,7 +28,7 @@ struct SearchView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                     .frame(maxWidth: .infinity)
-
+                    
                     NavigationLink(destination: VisualScanView()) {
                         Image(systemName: "camera")
                             .padding(10)
@@ -41,64 +40,69 @@ struct SearchView: View {
                 .frame(maxWidth: 400) // Set a max width to center the search bar
                 .padding(.horizontal)
                 .frame(maxWidth: .infinity, alignment: .center) // Centers the HStack
-
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 10) {
-                        Color.clear.frame(height: 10) // Acts as top padding
-                        
-                        if viewModel.isLoading {
-                            ProgressView("Searching...")
-                                .padding()
-                        } else if viewModel.results.isEmpty && !viewModel.searchText.isEmpty {
-                            Text("No results found.")
-                                .foregroundColor(.gray)
-                                .padding()
-                        } else {
-                            ForEach(viewModel.results) { item in
-                                VStack {
-                                    HStack(alignment: .top, spacing: 10) {
-                                        if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
-                                            AsyncImage(url: url) { image in
-                                                image.resizable().scaledToFit()
-                                            } placeholder: {
-                                                ProgressView()
-                                            }
-                                            .frame(width: 120, height: 120)
-                                            .cornerRadius(8)
-                                            .padding(.leading)
-                                        } else {
-                                            Text("No Image Available")
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                                .padding(.leading)
-                                        }
-
-                                        VStack(alignment: .leading, spacing: 5) {
-                                            Text(item.title)
-                                                .font(.headline)
-                                                .multilineTextAlignment(.leading)
-                                            Text("\(item.price.currency) \(item.price.value)")
-                                                .font(.subheadline)
-                                                .foregroundColor(.gray)
-                                        }
-                                        Spacer()
-                                    }
+                
+                ZStack {
+                    Color(.secondarySystemBackground) // Adjust for dark mode
+                        .ignoresSafeArea()
+                    
+                    ScrollView(showsIndicators: false) {
+                        LazyVStack(spacing: 10) {
+                            Color.clear.frame(height: 10)
+                            
+                            if viewModel.isLoading {
+                                ProgressView("Searching...")
                                     .padding()
+                            } else if viewModel.results.isEmpty && !viewModel.searchText.isEmpty {
+                                Text("No results found.")
+                                    .foregroundColor(.secondary)
+                                    .padding()
+                            } else {
+                                ForEach(viewModel.results) { item in
+                                    VStack {
+                                        HStack(alignment: .top, spacing: 10) {
+                                            if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
+                                                AsyncImage(url: url) { image in
+                                                    image.resizable().scaledToFit()
+                                                } placeholder: {
+                                                    ProgressView()
+                                                }
+                                                .frame(width: 120, height: 120)
+                                                .cornerRadius(8)
+                                                .padding(.leading)
+                                            } else {
+                                                Text("No Image Available")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                                    .padding(.leading)
+                                            }
+                                            
+                                            VStack(alignment: .leading, spacing: 5) {
+                                                Text(item.title)
+                                                    .font(.headline)
+                                                    .multilineTextAlignment(.leading)
+                                                    .foregroundColor(.primary) // Adapts to dark mode
+                                                Text("\(item.price.currency == "USD" ? "$" : item.price.currency) \(item.price.value)")
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                            Spacer()
+                                        }
+                                        .padding()
+                                    }
+                                    .background(Color(.systemBackground))
+                                    .cornerRadius(12)
+                                    .shadow(radius: 3)
+                                    .padding(.horizontal)
+                                    .frame(maxWidth: .infinity, minHeight: 120)
                                 }
-                                .background(Color.white)
-                                .cornerRadius(12)
-                                .shadow(radius: 3)
-                                .padding(.horizontal)
-                                .frame(maxWidth: .infinity, minHeight: 120)
                             }
                         }
                     }
                 }
-                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 20) }
-                .frame(maxHeight: .infinity)
-                .clipped()
+                .preferredColorScheme(isDarkMode ? .dark : .light)
+                .ignoresSafeArea(.keyboard)
+                .navigationTitle("Find Items")
             }
-            .ignoresSafeArea(.keyboard)
         }
     }
 }
@@ -106,4 +110,3 @@ struct SearchView: View {
 #Preview {
     SearchView()
 }
-
