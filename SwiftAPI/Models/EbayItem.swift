@@ -50,10 +50,12 @@ struct EbayItem: Codable, Identifiable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
+        // Decode itemId, title, and viewItemURL as arrays and pick the first value if available
         id = try container.decodeIfPresent([String].self, forKey: .id)?.first ?? "Unknown"
-        title = try container.decodeIfPresent([String].self, forKey: .title)?.first ?? "No Title"
-        itemURL = try container.decodeIfPresent([String].self, forKey: .itemURL)?.first ?? "#"
+        title = try container.decodeIfPresent([String].self, forKey: .title)?.first?.removingPercentEncoding ?? "No Title"
+        itemURL = try container.decodeIfPresent([String].self, forKey: .itemURL)?.first?.removingPercentEncoding ?? "#"
 
+        // Decode category information
         if let categoryContainer = try? container.decodeIfPresent([CategoryContainer].self, forKey: .category),
            let firstCategory = categoryContainer.first?.categoryName?.first {
             category = firstCategory
@@ -61,6 +63,7 @@ struct EbayItem: Codable, Identifiable {
             category = nil
         }
 
+        // Decode price information
         if let priceContainer = try? container.decodeIfPresent([PriceContainer].self, forKey: .price),
            let firstPrice = priceContainer.first?.currentPrice.first {
             price = Price(value: firstPrice.__value__, currency: firstPrice.currencyId)
@@ -68,7 +71,13 @@ struct EbayItem: Codable, Identifiable {
             price = Price(value: "0.00", currency: "USD")
         }
 
+        // Decode image URL
         imageUrl = try container.decodeIfPresent([String].self, forKey: .imageUrl)?.first
+        
+        // Console log the image URL if it's available
+        if let imageUrl = imageUrl {
+            print("Image URL: \(imageUrl)")
+        }
     }
 }
 

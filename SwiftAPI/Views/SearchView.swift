@@ -63,9 +63,14 @@ struct SearchView: View {
                                             } placeholder: {
                                                 ProgressView()
                                             }
-                                            .frame(width: 100, height: 100)
+                                            .frame(width: 120, height: 120)
                                             .cornerRadius(8)
                                             .padding(.leading)
+                                        } else {
+                                            Text("No Image Available")
+                                                .font(.caption)
+                                                .foregroundColor(.gray)
+                                                .padding(.leading)
                                         }
 
                                         VStack(alignment: .leading, spacing: 5) {
@@ -101,3 +106,4 @@ struct SearchView: View {
 #Preview {
     SearchView()
 }
+
