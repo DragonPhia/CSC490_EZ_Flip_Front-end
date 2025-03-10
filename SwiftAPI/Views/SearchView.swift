@@ -15,8 +15,6 @@ struct SearchView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                
-                
                 HStack {
                     HStack {
                         Image(systemName: "magnifyingglass")
@@ -37,12 +35,12 @@ struct SearchView: View {
                             .clipShape(Circle())
                     }
                 }
-                .frame(maxWidth: 400) // Set a max width to center the search bar
+                .frame(maxWidth: 400)
                 .padding(.horizontal)
-                .frame(maxWidth: .infinity, alignment: .center) // Centers the HStack
+                .frame(maxWidth: .infinity, alignment: .center)
                 
                 ZStack {
-                    Color(.secondarySystemBackground) // Adjust for dark mode
+                    Color(.secondarySystemBackground)
                         .ignoresSafeArea()
                     
                     ScrollView(showsIndicators: false) {
@@ -58,42 +56,44 @@ struct SearchView: View {
                                     .padding()
                             } else {
                                 ForEach(viewModel.results) { item in
-                                    VStack {
-                                        HStack(alignment: .top, spacing: 10) {
-                                            if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
-                                                AsyncImage(url: url) { image in
-                                                    image.resizable().scaledToFit()
-                                                } placeholder: {
-                                                    ProgressView()
-                                                }
-                                                .frame(width: 120, height: 120)
-                                                .cornerRadius(8)
-                                                .padding(.leading)
-                                            } else {
-                                                Text("No Image Available")
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
+                                    NavigationLink(destination: DetailView(item: item)) {
+                                        VStack {
+                                            HStack(alignment: .top, spacing: 10) {
+                                                if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
+                                                    AsyncImage(url: url) { image in
+                                                        image.resizable().scaledToFit()
+                                                    } placeholder: {
+                                                        ProgressView()
+                                                    }
+                                                    .frame(width: 120, height: 120)
+                                                    .cornerRadius(8)
                                                     .padding(.leading)
+                                                } else {
+                                                    Text("No Image Available")
+                                                        .font(.caption)
+                                                        .foregroundColor(.secondary)
+                                                        .padding(.leading)
+                                                }
+                                                
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text(item.title)
+                                                        .font(.headline)
+                                                        .multilineTextAlignment(.leading)
+                                                        .foregroundColor(.primary)
+                                                    Text("\(item.price.currency == "USD" ? "$" : item.price.currency) \(item.price.value)")
+                                                        .font(.subheadline)
+                                                        .foregroundColor(.secondary)
+                                                }
+                                                Spacer()
                                             }
-                                            
-                                            VStack(alignment: .leading, spacing: 5) {
-                                                Text(item.title)
-                                                    .font(.headline)
-                                                    .multilineTextAlignment(.leading)
-                                                    .foregroundColor(.primary) // Adapts to dark mode
-                                                Text("\(item.price.currency == "USD" ? "$" : item.price.currency) \(item.price.value)")
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                            Spacer()
+                                            .padding()
                                         }
-                                        .padding()
+                                        .background(Color(.systemBackground))
+                                        .cornerRadius(12)
+                                        .shadow(radius: 3)
+                                        .padding(.horizontal)
+                                        .frame(maxWidth: .infinity, minHeight: 120)
                                     }
-                                    .background(Color(.systemBackground))
-                                    .cornerRadius(12)
-                                    .shadow(radius: 3)
-                                    .padding(.horizontal)
-                                    .frame(maxWidth: .infinity, minHeight: 120)
                                 }
                             }
                         }
