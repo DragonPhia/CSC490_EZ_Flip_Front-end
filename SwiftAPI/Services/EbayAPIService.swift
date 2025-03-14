@@ -29,12 +29,30 @@ class EbayAPIService {
                 return
             }
 
+            // Debug: Print out the raw JSON response
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Raw JSON Response: \(jsonString)")  // Print raw JSON to debug
+            }
+
             do {
                 let responseWrapper = try JSONDecoder().decode(EbayResponseWrapper.self, from: data)
-                let items = responseWrapper.findItemsByKeywordsResponse.first?.searchResult?.first?.item ?? []
-                DispatchQueue.main.async { completion(.success(items)) }
+
+                // Check if activeListings is empty
+                if responseWrapper.activeListings.isEmpty {
+                    DispatchQueue.main.async {
+                        completion(.failure(NSError(domain: "No listings found", code: 404, userInfo: nil)))
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        completion(.success(responseWrapper.activeListings))
+                    }
+                }
             } catch {
-                DispatchQueue.main.async { completion(.failure(error)) }
+                // Handle decoding error and print error for debugging
+                DispatchQueue.main.async {
+                    print("Error decoding response: \(error.localizedDescription)")
+                    completion(.failure(error))  // Pass error back to the caller
+                }
             }
         }
         task.resume()

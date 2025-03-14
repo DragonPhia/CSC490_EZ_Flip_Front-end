@@ -13,8 +13,8 @@ struct DetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if let imageUrl = item.imageUrl {
-                    AsyncImage(url: URL(string: imageUrl)) { image in
+                if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
+                    AsyncImage(url: url) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
                         ProgressView()
@@ -36,13 +36,30 @@ struct DetailView: View {
                     .font(.title3)
                     .foregroundColor(.secondary)
                 
-                if let category = item.category {
-                    Text("Category: \(category)")
+                // Display categories
+                if !item.categories.isEmpty {
+                    VStack(alignment: .leading) {
+                        Text("Categories:")
+                            .font(.headline)
+                            .padding(.top, 8)
+                        ForEach(item.categories, id: \.categoryName) { category in
+                            Text(category.categoryName)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                HStack {
+                    Text("Condition: ")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    Text(item.condition)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
 
-                Link("View on eBay", destination: URL(string: item.itemURL)!)
+                Link("View on eBay", destination: URL(string: item.itemWebUrl)!)
                     .foregroundColor(.blue)
                     .padding()
                     .background(Color(.systemGray5))

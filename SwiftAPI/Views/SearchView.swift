@@ -59,15 +59,32 @@ struct SearchView: View {
                                     NavigationLink(destination: DetailView(item: item)) {
                                         VStack {
                                             HStack(alignment: .top, spacing: 10) {
+                                                
+                                                // Check if imageUrl is available and valid
                                                 if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
-                                                    AsyncImage(url: url) { image in
-                                                        image.resizable().scaledToFit()
-                                                    } placeholder: {
-                                                        ProgressView()
+                                                    
+                                                    AsyncImage(url: url) { phase in
+                                                        switch phase {
+                                                        case .empty:
+                                                            ProgressView()
+                                                                .progressViewStyle(CircularProgressViewStyle())
+                                                                .padding(20)
+                                                        case .success(let image):
+                                                            image.resizable().scaledToFit()
+                                                                .frame(width: 120, height: 120)
+                                                                .cornerRadius(8)
+                                                                .padding(.leading)
+                                                        case .failure:
+                                                            Image(systemName: "photo")
+                                                                .resizable()
+                                                                .scaledToFit()
+                                                                .frame(width: 120, height: 120)
+                                                                .cornerRadius(8)
+                                                                .padding(.leading)
+                                                        @unknown default:
+                                                            EmptyView()
+                                                        }
                                                     }
-                                                    .frame(width: 120, height: 120)
-                                                    .cornerRadius(8)
-                                                    .padding(.leading)
                                                 } else {
                                                     Text("No Image Available")
                                                         .font(.caption)
