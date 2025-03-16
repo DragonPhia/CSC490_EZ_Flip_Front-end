@@ -22,6 +22,7 @@ class SearchViewModel: ObservableObject {
                 switch result {
                 case .success(let items):
                     self.results = items
+                    print("Fetched Results: \(items)")  // Move print statement here for debugging
                 case .failure(let error):
                     print("Error fetching eBay results: \(error.localizedDescription)")
                 }

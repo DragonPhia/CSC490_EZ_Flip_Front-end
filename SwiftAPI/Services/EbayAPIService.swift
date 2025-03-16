@@ -13,7 +13,7 @@ class EbayAPIService {
     private init() {}
 
     func searchItems(query: String, completion: @escaping (Result<[EbayItem], Error>) -> Void) {
-        guard let url = URL(string: "http://localhost:3000/api/search?query=\(query)") else {
+        guard let url = URL(string: "https://ezflip.onrender.com/api/search?query=\(query)") else {
             completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
             return
         }
@@ -33,9 +33,18 @@ class EbayAPIService {
             if let jsonString = String(data: data, encoding: .utf8) {
                 print("Raw JSON Response: \(jsonString)")  // Print raw JSON to debug
             }
-
+            
             do {
                 let responseWrapper = try JSONDecoder().decode(EbayResponseWrapper.self, from: data)
+
+                // Debugging: Check if the imageUrl is properly populated for each item
+                for item in responseWrapper.activeListings {
+                    if let imageUrl = item.imageUrl {
+                        print("Item ID: \(item.id), Image URL: \(imageUrl)")
+                    } else {
+                        print("Item ID: \(item.id), No image URL available")
+                    }
+                }
 
                 // Check if activeListings is empty
                 if responseWrapper.activeListings.isEmpty {
