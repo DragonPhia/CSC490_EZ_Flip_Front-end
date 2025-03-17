@@ -12,7 +12,7 @@ class EbayAPIService {
     
     private init() {}
 
-    func searchItems(query: String, completion: @escaping (Result<[EbayItem], Error>) -> Void) {
+    func searchItems(query: String, completion: @escaping (Result<EbayResponseWrapper, Error>) -> Void) {
         guard let url = URL(string: "https://ezflip.onrender.com/api/search?query=\(query)") else {
             completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
             return
@@ -29,38 +29,24 @@ class EbayAPIService {
                 return
             }
 
-            // Debug: Print out the raw JSON response
-            if let jsonString = String(data: data, encoding: .utf8) {
-                print("Raw JSON Response: \(jsonString)")  // Print raw JSON to debug
+            // Print raw data for debugging
+            if let rawString = String(data: data, encoding: .utf8) {
+                print("Raw response data: \(rawString)")
             }
-            
+
             do {
                 let responseWrapper = try JSONDecoder().decode(EbayResponseWrapper.self, from: data)
-
-                // Debugging: Check if the imageUrl is properly populated for each item
-                for item in responseWrapper.activeListings {
-                    if let imageUrl = item.imageUrl {
-                        print("Item ID: \(item.id), Image URL: \(imageUrl)")
-                    } else {
-                        print("Item ID: \(item.id), No image URL available")
-                    }
-                }
-
-                // Check if activeListings is empty
-                if responseWrapper.activeListings.isEmpty {
-                    DispatchQueue.main.async {
-                        completion(.failure(NSError(domain: "No listings found", code: 404, userInfo: nil)))
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        completion(.success(responseWrapper.activeListings))
-                    }
+                print("Decoded Response: \(responseWrapper)")
+                DispatchQueue.main.async {
+                    completion(.success(responseWrapper))
                 }
             } catch {
-                // Handle decoding error and print error for debugging
                 DispatchQueue.main.async {
                     print("Error decoding response: \(error.localizedDescription)")
-                    completion(.failure(error))  // Pass error back to the caller
+                    if let dataString = String(data: data, encoding: .utf8) {
+                        print("Raw Response: \(dataString)") // Log the response for debugging
+                    }
+                    completion(.failure(error))
                 }
             }
         }

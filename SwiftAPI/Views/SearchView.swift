@@ -14,7 +14,7 @@ struct SearchView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 10) {
                 HStack {
                     HStack {
                         Image(systemName: "magnifyingglass")
@@ -37,8 +37,44 @@ struct SearchView: View {
                 }
                 .frame(maxWidth: 400)
                 .padding(.horizontal)
-                .frame(maxWidth: .infinity, alignment: .center)
-                
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Market Insights")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Avg. Listed Price: $\(viewModel.averageListedPrice, specifier: "%.2f")")
+                                .font(.footnote) // Smaller font size
+                            Text("Total Active Listings: \(viewModel.totalActiveListings)")
+                                .font(.footnote) // Smaller font size
+                        }
+                        Spacer()
+                        VStack(alignment: .leading) {
+                            Text("Avg. Sold Price: $\(viewModel.averageSoldPrice, specifier: "%.2f")")
+                                .font(.footnote) // Smaller font size
+                            Text("Total Sold Listings: \(viewModel.totalSoldCompletedListings)")
+                                .font(.footnote) // Smaller font size
+                        }
+                    }
+                    if let sellThroughRate = viewModel.sellThroughRate {
+                        Text("Sell-Through Rate: \(sellThroughRate, specifier: "%.2f")%")
+                            .foregroundColor(.green)
+                            .font(.footnote) // Smaller font size
+                    } else {
+                        Text("Sell-Through Rate: N/A")
+                            .foregroundColor(.secondary)
+                            .font(.footnote) // Smaller font size
+                    }
+                }
+                .padding([.top, .leading, .trailing, .bottom], 10)
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemBackground))
+                .cornerRadius(8)
+                .shadow(radius: 2)
+                .padding(.horizontal)
+
                 ZStack {
                     Color(.secondarySystemBackground)
                         .ignoresSafeArea()
@@ -59,10 +95,7 @@ struct SearchView: View {
                                     NavigationLink(destination: DetailView(item: item)) {
                                         VStack {
                                             HStack(alignment: .top, spacing: 10) {
-                                                
-                                                // Check if imageUrl is available and valid
                                                 if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
-                                                    
                                                     AsyncImage(url: url) { phase in
                                                         switch phase {
                                                         case .empty:
@@ -105,11 +138,11 @@ struct SearchView: View {
                                             }
                                             .padding()
                                         }
+                                        .frame(maxWidth: .infinity, minHeight: 120) // Fixed height for each item
                                         .background(Color(.systemBackground))
                                         .cornerRadius(12)
                                         .shadow(radius: 3)
                                         .padding(.horizontal)
-                                        .frame(maxWidth: .infinity, minHeight: 120)
                                     }
                                 }
                             }

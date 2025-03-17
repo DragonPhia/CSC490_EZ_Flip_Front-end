@@ -68,9 +68,9 @@ struct DetailView: View {
                 Spacer()
             }
             .padding()
+            .frame(maxHeight: 600, alignment: .top) // Ensure content aligns at the top
+            .frame(maxWidth: .infinity, alignment: .leading) // Ensure leading alignment
         }
         .navigationTitle("Item Details")
     }
 }
-
-

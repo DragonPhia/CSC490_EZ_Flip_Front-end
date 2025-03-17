@@ -9,6 +9,20 @@ import Foundation
 
 struct EbayResponseWrapper: Codable {
     let activeListings: [EbayItem]
+    let averageListedPrice: String 
+    let totalActiveListings: Int
+    let averageSoldPrice: Double
+    let totalSoldCompletedListings: Int
+    let sellThroughRate: Double?
+    
+    enum CodingKeys: String, CodingKey {
+        case activeListings
+        case averageListedPrice
+        case totalActiveListings
+        case averageSoldPrice
+        case totalSoldCompletedListings
+        case sellThroughRate
+    }
 }
 
 struct EbayItem: Identifiable, Codable {
