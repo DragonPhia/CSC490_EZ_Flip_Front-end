@@ -59,7 +59,8 @@ struct DetailView: View {
                     }
                 }
 
-                Link("View on eBay", destination: URL(string: item.itemHref)!)
+                // Updated Link to eBay
+                Link("View on eBay", destination: URL(string: item.itemWebUrl)!)
                     .foregroundColor(.blue)
                     .padding()
                     .background(Color(.systemGray5))

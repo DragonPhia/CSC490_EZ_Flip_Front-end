@@ -15,7 +15,7 @@ struct EbayItem: Identifiable, Codable {
     let price: Price
     let seller: Seller
     let condition: String
-    let itemHref: String
+    let itemWebUrl: String 
     let categories: [Category] // Added categories property
 }
 
