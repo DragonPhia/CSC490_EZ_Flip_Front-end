@@ -6,37 +6,26 @@
 //
 
 import Foundation
+import Combine
+
+struct EbayAPIResponse: Codable {
+    let averageListedPrice: String
+    let totalActiveListings: Int
+    let activeListings: [EbayItem]
+}
 
 class EbayAPIService {
-    static let shared = EbayAPIService() // Singleton instance
+    static let baseURL = "https://ezflip.onrender.com/api/search?query="
     
-    private init() {}
-
-    func searchItems(query: String, completion: @escaping (Result<[EbayItem], Error>) -> Void) {
-        guard let url = URL(string: "http://localhost:3000/api/search?query=\(query)") else {
-            completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
-            return
+    static func fetchItems(query: String) -> AnyPublisher<EbayAPIResponse, Error> {
+        let urlString = baseURL + query
+        guard let url = URL(string: urlString) else {
+            return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }
-
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                DispatchQueue.main.async { completion(.failure(error)) }
-                return
-            }
-
-            guard let data = data else {
-                DispatchQueue.main.async { completion(.failure(NSError(domain: "No Data", code: 404, userInfo: nil))) }
-                return
-            }
-
-            do {
-                let responseWrapper = try JSONDecoder().decode(EbayResponseWrapper.self, from: data)
-                let items = responseWrapper.findItemsByKeywordsResponse.first?.searchResult?.first?.item ?? []
-                DispatchQueue.main.async { completion(.success(items)) }
-            } catch {
-                DispatchQueue.main.async { completion(.failure(error)) }
-            }
-        }
-        task.resume()
+        
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .map { $0.data }
+            .decode(type: EbayAPIResponse.self, decoder: JSONDecoder())
+            .eraseToAnyPublisher()
     }
 }

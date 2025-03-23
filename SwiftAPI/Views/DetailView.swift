@@ -13,8 +13,8 @@ struct DetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if let imageUrl = item.imageUrl {
-                    AsyncImage(url: URL(string: imageUrl)) { image in
+                if let imageUrl = item.image.imageUrl, let url = URL(string: imageUrl) {
+                    AsyncImage(url: url) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
                         ProgressView()
@@ -36,13 +36,31 @@ struct DetailView: View {
                     .font(.title3)
                     .foregroundColor(.secondary)
                 
-                if let category = item.category {
-                    Text("Category: \(category)")
+                HStack {
+                    Text("Condition: ")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text(item.condition)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
 
-                Link("View on eBay", destination: URL(string: item.itemURL)!)
+                // Displaying Categories
+                if !item.categories.isEmpty {
+                    Text("Categories:")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    ForEach(item.categories, id: \.categoryName) { category in
+                        Text(category.categoryName)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .padding(.bottom, 1)
+                    }
+                }
+
+                // Updated Link to eBay
+                Link("View on eBay", destination: URL(string: item.itemWebUrl)!)
                     .foregroundColor(.blue)
                     .padding()
                     .background(Color(.systemGray5))
@@ -51,9 +69,9 @@ struct DetailView: View {
                 Spacer()
             }
             .padding()
+            .frame(maxHeight: 600, alignment: .top)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationTitle("Item Details")
     }
 }
-
-

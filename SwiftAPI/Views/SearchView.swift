@@ -14,7 +14,7 @@ struct SearchView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 10) {
                 HStack {
                     HStack {
                         Image(systemName: "magnifyingglass")
@@ -37,8 +37,29 @@ struct SearchView: View {
                 }
                 .frame(maxWidth: 400)
                 .padding(.horizontal)
-                .frame(maxWidth: .infinity, alignment: .center)
-                
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Market Insights")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Avg. Listed Price: $\(viewModel.averageListedPrice, specifier: "%.2f")")
+                                .font(.footnote)
+                            Text("Total Active Listings: \(viewModel.totalActiveListings)")
+                                .font(.footnote)
+                        }
+                        Spacer()
+                    }
+                }
+                .padding([.top, .leading, .trailing, .bottom], 10)
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemBackground))
+                .cornerRadius(8)
+                .shadow(radius: 2)
+                .padding(.horizontal)
+
                 ZStack {
                     Color(.secondarySystemBackground)
                         .ignoresSafeArea()
@@ -55,19 +76,43 @@ struct SearchView: View {
                                     .foregroundColor(.secondary)
                                     .padding()
                             } else {
-                                ForEach(viewModel.results) { item in
+                                // Limiting to the first 10 items
+                                ForEach(viewModel.results.prefix(10)) { item in
                                     NavigationLink(destination: DetailView(item: item)) {
                                         VStack {
                                             HStack(alignment: .top, spacing: 10) {
-                                                if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
-                                                    AsyncImage(url: url) { image in
-                                                        image.resizable().scaledToFit()
-                                                    } placeholder: {
-                                                        ProgressView()
+                                                // Debugging: Print the imageUrl
+                                                if let imageUrl = item.image.imageUrl {
+                                                
+                                                    if let url = URL(string: imageUrl) {
+                                                        AsyncImage(url: url) { phase in
+                                                            switch phase {
+                                                            case .empty:
+                                                                ProgressView()
+                                                                    .progressViewStyle(CircularProgressViewStyle())
+                                                                    .padding(20)
+                                                            case .success(let image):
+                                                                image.resizable().scaledToFit()
+                                                                    .frame(width: 120, height: 120)
+                                                                    .cornerRadius(8)
+                                                                    .padding(.leading)
+                                                            case .failure:
+                                                                Image(systemName: "photo")
+                                                                    .resizable()
+                                                                    .scaledToFit()
+                                                                    .frame(width: 120, height: 120)
+                                                                    .cornerRadius(8)
+                                                                    .padding(.leading)
+                                                            @unknown default:
+                                                                EmptyView()
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Text("Invalid Image URL")
+                                                            .font(.caption)
+                                                            .foregroundColor(.secondary)
+                                                            .padding(.leading)
                                                     }
-                                                    .frame(width: 120, height: 120)
-                                                    .cornerRadius(8)
-                                                    .padding(.leading)
                                                 } else {
                                                     Text("No Image Available")
                                                         .font(.caption)
@@ -88,11 +133,11 @@ struct SearchView: View {
                                             }
                                             .padding()
                                         }
+                                        .frame(maxWidth: .infinity, minHeight: 120)
                                         .background(Color(.systemBackground))
                                         .cornerRadius(12)
                                         .shadow(radius: 3)
                                         .padding(.horizontal)
-                                        .frame(maxWidth: .infinity, minHeight: 120)
                                     }
                                 }
                             }
