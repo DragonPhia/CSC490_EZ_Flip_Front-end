@@ -6,50 +6,26 @@
 //
 
 import Foundation
+import Combine
+
+struct EbayAPIResponse: Codable {
+    let averageListedPrice: String
+    let totalActiveListings: Int
+    let activeListings: [EbayItem]
+}
 
 class EbayAPIService {
-    static let shared = EbayAPIService() // Singleton instance
+    static let baseURL = "https://ezflip.onrender.com/api/search?query="
     
-    private init() {}
-
-    func searchItems(query: String, completion: @escaping (Result<EbayResponseWrapper, Error>) -> Void) {
-        guard let url = URL(string: "https://ezflip.onrender.com/api/search?query=\(query)") else {
-            completion(.failure(NSError(domain: "Invalid URL", code: 400, userInfo: nil)))
-            return
+    static func fetchItems(query: String) -> AnyPublisher<EbayAPIResponse, Error> {
+        let urlString = baseURL + query
+        guard let url = URL(string: urlString) else {
+            return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }
-
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                DispatchQueue.main.async { completion(.failure(error)) }
-                return
-            }
-
-            guard let data = data else {
-                DispatchQueue.main.async { completion(.failure(NSError(domain: "No Data", code: 404, userInfo: nil))) }
-                return
-            }
-
-            // Print raw data for debugging
-            if let rawString = String(data: data, encoding: .utf8) {
-                print("Raw response data: \(rawString)")
-            }
-
-            do {
-                let responseWrapper = try JSONDecoder().decode(EbayResponseWrapper.self, from: data)
-                print("Decoded Response: \(responseWrapper)")
-                DispatchQueue.main.async {
-                    completion(.success(responseWrapper))
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    print("Error decoding response: \(error.localizedDescription)")
-                    if let dataString = String(data: data, encoding: .utf8) {
-                        print("Raw Response: \(dataString)") // Log the response for debugging
-                    }
-                    completion(.failure(error))
-                }
-            }
-        }
-        task.resume()
+        
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .map { $0.data }
+            .decode(type: EbayAPIResponse.self, decoder: JSONDecoder())
+            .eraseToAnyPublisher()
     }
 }

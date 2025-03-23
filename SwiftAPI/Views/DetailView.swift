@@ -13,7 +13,7 @@ struct DetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
+                if let imageUrl = item.image.imageUrl, let url = URL(string: imageUrl) {
                     AsyncImage(url: url) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
@@ -36,30 +36,30 @@ struct DetailView: View {
                     .font(.title3)
                     .foregroundColor(.secondary)
                 
-                // Display categories
-                if !item.categories.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Categories:")
-                            .font(.headline)
-                            .padding(.top, 8)
-                        ForEach(item.categories, id: \.categoryName) { category in
-                            Text(category.categoryName)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-
                 HStack {
                     Text("Condition: ")
                         .font(.subheadline)
-                        .foregroundColor(.primary)
+                        .fontWeight(.semibold)
                     Text(item.condition)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
 
-                Link("View on eBay", destination: URL(string: item.itemWebUrl)!)
+                // Displaying Categories
+                if !item.categories.isEmpty {
+                    Text("Categories:")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    ForEach(item.categories, id: \.categoryName) { category in
+                        Text(category.categoryName)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .padding(.bottom, 1)
+                    }
+                }
+
+                Link("View on eBay", destination: URL(string: item.itemHref)!)
                     .foregroundColor(.blue)
                     .padding()
                     .background(Color(.systemGray5))
@@ -68,8 +68,8 @@ struct DetailView: View {
                 Spacer()
             }
             .padding()
-            .frame(maxHeight: 600, alignment: .top) // Ensure content aligns at the top
-            .frame(maxWidth: .infinity, alignment: .leading) // Ensure leading alignment
+            .frame(maxHeight: 600, alignment: .top)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationTitle("Item Details")
     }

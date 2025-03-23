@@ -46,26 +46,11 @@ struct SearchView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Avg. Listed Price: $\(viewModel.averageListedPrice, specifier: "%.2f")")
-                                .font(.footnote) // Smaller font size
+                                .font(.footnote)
                             Text("Total Active Listings: \(viewModel.totalActiveListings)")
-                                .font(.footnote) // Smaller font size
+                                .font(.footnote)
                         }
                         Spacer()
-                        VStack(alignment: .leading) {
-                            Text("Avg. Sold Price: $\(viewModel.averageSoldPrice, specifier: "%.2f")")
-                                .font(.footnote) // Smaller font size
-                            Text("Total Sold Listings: \(viewModel.totalSoldCompletedListings)")
-                                .font(.footnote) // Smaller font size
-                        }
-                    }
-                    if let sellThroughRate = viewModel.sellThroughRate {
-                        Text("Sell-Through Rate: \(sellThroughRate, specifier: "%.2f")%")
-                            .foregroundColor(.green)
-                            .font(.footnote) // Smaller font size
-                    } else {
-                        Text("Sell-Through Rate: N/A")
-                            .foregroundColor(.secondary)
-                            .font(.footnote) // Smaller font size
                     }
                 }
                 .padding([.top, .leading, .trailing, .bottom], 10)
@@ -91,32 +76,42 @@ struct SearchView: View {
                                     .foregroundColor(.secondary)
                                     .padding()
                             } else {
-                                ForEach(viewModel.results) { item in
+                                // Limiting to the first 10 items
+                                ForEach(viewModel.results.prefix(10)) { item in
                                     NavigationLink(destination: DetailView(item: item)) {
                                         VStack {
                                             HStack(alignment: .top, spacing: 10) {
-                                                if let imageUrl = item.imageUrl, let url = URL(string: imageUrl) {
-                                                    AsyncImage(url: url) { phase in
-                                                        switch phase {
-                                                        case .empty:
-                                                            ProgressView()
-                                                                .progressViewStyle(CircularProgressViewStyle())
-                                                                .padding(20)
-                                                        case .success(let image):
-                                                            image.resizable().scaledToFit()
-                                                                .frame(width: 120, height: 120)
-                                                                .cornerRadius(8)
-                                                                .padding(.leading)
-                                                        case .failure:
-                                                            Image(systemName: "photo")
-                                                                .resizable()
-                                                                .scaledToFit()
-                                                                .frame(width: 120, height: 120)
-                                                                .cornerRadius(8)
-                                                                .padding(.leading)
-                                                        @unknown default:
-                                                            EmptyView()
+                                                // Debugging: Print the imageUrl
+                                                if let imageUrl = item.image.imageUrl {
+                                                
+                                                    if let url = URL(string: imageUrl) {
+                                                        AsyncImage(url: url) { phase in
+                                                            switch phase {
+                                                            case .empty:
+                                                                ProgressView()
+                                                                    .progressViewStyle(CircularProgressViewStyle())
+                                                                    .padding(20)
+                                                            case .success(let image):
+                                                                image.resizable().scaledToFit()
+                                                                    .frame(width: 120, height: 120)
+                                                                    .cornerRadius(8)
+                                                                    .padding(.leading)
+                                                            case .failure:
+                                                                Image(systemName: "photo")
+                                                                    .resizable()
+                                                                    .scaledToFit()
+                                                                    .frame(width: 120, height: 120)
+                                                                    .cornerRadius(8)
+                                                                    .padding(.leading)
+                                                            @unknown default:
+                                                                EmptyView()
+                                                            }
                                                         }
+                                                    } else {
+                                                        Text("Invalid Image URL")
+                                                            .font(.caption)
+                                                            .foregroundColor(.secondary)
+                                                            .padding(.leading)
                                                     }
                                                 } else {
                                                     Text("No Image Available")
@@ -138,7 +133,7 @@ struct SearchView: View {
                                             }
                                             .padding()
                                         }
-                                        .frame(maxWidth: .infinity, minHeight: 120) // Fixed height for each item
+                                        .frame(maxWidth: .infinity, minHeight: 120)
                                         .background(Color(.systemBackground))
                                         .cornerRadius(12)
                                         .shadow(radius: 3)

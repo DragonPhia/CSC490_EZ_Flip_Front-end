@@ -6,36 +6,62 @@
 //
 
 import Foundation
+import Combine
 
 class SearchViewModel: ObservableObject {
-    @Published var searchText: String = ""
+    @Published var searchText = ""
     @Published var results: [EbayItem] = []
-    @Published var isLoading: Bool = false
-    @Published var averageListedPrice: Double = 0
+    @Published var isLoading = false
+    @Published var averageListedPrice: Double = 0.0
     @Published var totalActiveListings: Int = 0
-    @Published var averageSoldPrice: Double = 0
-    @Published var totalSoldCompletedListings: Int = 0
-    @Published var sellThroughRate: Double? = nil
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    // Function to preprocess the search query
+    func preprocessQuery(query: String) -> String {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedQuery = trimmedQuery.lowercased()
+        
+        // Remove punctuation (anything that's not alphanumeric or space)
+        let cleanedQuery = normalizedQuery.replacingOccurrences(of: "[^a-zA-Z0-9 ]", with: "", options: .regularExpression)
+        
+        return cleanedQuery
+    }
 
     func fetchResults() {
-        guard !searchText.isEmpty else { return }
-
-        isLoading = true
-        EbayAPIService.shared.searchItems(query: searchText) { result in
-            DispatchQueue.main.async {
-                self.isLoading = false
-                switch result {
-                case .success(let response):
-                    self.results = response.activeListings
-                    self.averageListedPrice = Double(response.averageListedPrice) ?? 0
-                    self.totalActiveListings = response.totalActiveListings
-                    self.averageSoldPrice = response.averageSoldPrice
-                    self.totalSoldCompletedListings = response.totalSoldCompletedListings
-                    self.sellThroughRate = response.sellThroughRate
-                case .failure(let error):
-                    print("Error fetching eBay results: \(error.localizedDescription)")
-                }
-            }
+        guard !searchText.isEmpty else {
+            return
         }
+        
+        isLoading = true
+        
+        // Preprocess the search text before sending the query
+        let normalizedQuery = preprocessQuery(query: searchText)
+        
+        EbayAPIService.fetchItems(query: normalizedQuery)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    print("Error fetching data: \(error)")
+                }
+                self.isLoading = false
+            }, receiveValue: { response in
+                // Set the results
+                self.results = response.activeListings
+
+                // Log the imageUrl for each item
+                for item in self.results {
+                    if let imageUrl = item.image.imageUrl {
+                        print("Fetched imageUrl: \(imageUrl)") // Logging the imageUrl
+                    } else {
+                        print("No image URL available for item: \(item.title)")
+                    }
+                } // <-- Closing the 'for' loop here
+
+                // Set the other values
+                self.averageListedPrice = Double(response.averageListedPrice) ?? 0.0
+                self.totalActiveListings = response.totalActiveListings
+            })
+            .store(in: &cancellables)
     }
 }
