@@ -45,21 +45,21 @@ struct DetailView: View {
                         .foregroundColor(.secondary)
                 }
 
-                // Displaying Categories
+                // Displaying first 3 categories
                 if !item.categories.isEmpty {
-                    Text("Categories:")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
+                    let categoryText = item.categories.prefix(3).map { $0.categoryName }.joined(separator: ", ")
                     
-                    ForEach(item.categories, id: \.categoryName) { category in
-                        Text(category.categoryName)
+                    HStack {
+                        Text("Categories:")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Text(categoryText)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                            .padding(.bottom, 1)
                     }
                 }
 
-                // Updated Link to eBay
+                // Link to eBay
                 Link("View on eBay", destination: URL(string: item.itemWebUrl)!)
                     .foregroundColor(.blue)
                     .padding()

@@ -9,12 +9,12 @@ import SwiftUI
 
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
-    
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 10) {
+                // Search Bar
                 HStack {
                     HStack {
                         Image(systemName: "magnifyingglass")
@@ -26,7 +26,7 @@ struct SearchView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                     .frame(maxWidth: .infinity)
-                    
+
                     NavigationLink(destination: VisualScanView()) {
                         Image(systemName: "camera")
                             .padding(10)
@@ -38,11 +38,12 @@ struct SearchView: View {
                 .frame(maxWidth: 400)
                 .padding(.horizontal)
 
+                // Market Insights
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Market Insights")
                         .font(.subheadline)
                         .foregroundColor(.primary)
-                    
+
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Avg. Listed Price: $\(viewModel.averageListedPrice, specifier: "%.2f")")
@@ -53,21 +54,19 @@ struct SearchView: View {
                         Spacer()
                     }
                 }
-                .padding([.top, .leading, .trailing, .bottom], 10)
+                .padding(8)
                 .frame(maxWidth: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color(.systemGray6))
                 .cornerRadius(8)
                 .shadow(radius: 2)
                 .padding(.horizontal)
 
+                // Item List
                 ZStack {
-                    Color(.secondarySystemBackground)
-                        .ignoresSafeArea()
-                    
                     ScrollView(showsIndicators: false) {
                         LazyVStack(spacing: 10) {
-                            Color.clear.frame(height: 10)
-                            
+                            Color.clear.frame(height: 1)
+
                             if viewModel.isLoading {
                                 ProgressView("Searching...")
                                     .padding()
@@ -76,42 +75,34 @@ struct SearchView: View {
                                     .foregroundColor(.secondary)
                                     .padding()
                             } else {
-                                // Limiting to the first 10 items
-                                ForEach(viewModel.results.prefix(10)) { item in
+                                ForEach(viewModel.results.prefix(viewModel.loadedItemCount)) { item in
                                     NavigationLink(destination: DetailView(item: item)) {
                                         VStack {
                                             HStack(alignment: .top, spacing: 10) {
-                                                // Debugging: Print the imageUrl
-                                                if let imageUrl = item.image.imageUrl {
-                                                
-                                                    if let url = URL(string: imageUrl) {
-                                                        AsyncImage(url: url) { phase in
-                                                            switch phase {
-                                                            case .empty:
-                                                                ProgressView()
-                                                                    .progressViewStyle(CircularProgressViewStyle())
-                                                                    .padding(20)
-                                                            case .success(let image):
-                                                                image.resizable().scaledToFit()
-                                                                    .frame(width: 120, height: 120)
-                                                                    .cornerRadius(8)
-                                                                    .padding(.leading)
-                                                            case .failure:
-                                                                Image(systemName: "photo")
-                                                                    .resizable()
-                                                                    .scaledToFit()
-                                                                    .frame(width: 120, height: 120)
-                                                                    .cornerRadius(8)
-                                                                    .padding(.leading)
-                                                            @unknown default:
-                                                                EmptyView()
-                                                            }
+                                                if let imageUrl = item.image.imageUrl,
+                                                   let url = URL(string: imageUrl) {
+                                                    AsyncImage(url: url) { phase in
+                                                        switch phase {
+                                                        case .empty:
+                                                            ProgressView()
+                                                                .progressViewStyle(CircularProgressViewStyle())
+                                                                .padding(20)
+                                                        case .success(let image):
+                                                            image.resizable()
+                                                                .scaledToFit()
+                                                                .frame(width: 120, height: 120)
+                                                                .cornerRadius(8)
+                                                                .padding(.leading)
+                                                        case .failure:
+                                                            Image(systemName: "photo")
+                                                                .resizable()
+                                                                .scaledToFit()
+                                                                .frame(width: 120, height: 120)
+                                                                .cornerRadius(8)
+                                                                .padding(.leading)
+                                                        @unknown default:
+                                                            EmptyView()
                                                         }
-                                                    } else {
-                                                        Text("Invalid Image URL")
-                                                            .font(.caption)
-                                                            .foregroundColor(.secondary)
-                                                            .padding(.leading)
                                                     }
                                                 } else {
                                                     Text("No Image Available")
@@ -119,7 +110,7 @@ struct SearchView: View {
                                                         .foregroundColor(.secondary)
                                                         .padding(.leading)
                                                 }
-                                                
+
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text(item.title)
                                                         .font(.headline)
@@ -134,13 +125,26 @@ struct SearchView: View {
                                             .padding()
                                         }
                                         .frame(maxWidth: .infinity, minHeight: 120)
-                                        .background(Color(.systemBackground))
+                                        .background(Color(.systemGray6))
                                         .cornerRadius(12)
                                         .shadow(radius: 3)
                                         .padding(.horizontal)
+                                        .onAppear {
+                                            viewModel.loadMoreItemsIfNeeded(item: item)
+                                        }
                                     }
                                 }
+
+                                if viewModel.loadedItemCount < viewModel.results.count {
+                                    ProgressView("Loading more items...")
+                                        .padding()
+                                        .onAppear {
+                                            viewModel.loadMoreItemsIfNeeded(item: viewModel.results.last!)
+                                        }
+                                }
                             }
+
+                            Color.clear.frame(height: 2)
                         }
                     }
                 }

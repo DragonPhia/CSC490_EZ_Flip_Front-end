@@ -16,7 +16,7 @@ struct EbayItem: Identifiable, Codable {
     let seller: Seller
     let condition: String
     let itemWebUrl: String 
-    let categories: [Category] // Added categories property
+    let categories: [Category]
 }
 
 struct ImageWrapper: Codable {
@@ -34,7 +34,6 @@ struct Seller: Codable {
     let feedbackScore: Int
 }
 
-// New model for category
 struct Category: Codable {
     let categoryName: String
 }
