@@ -79,7 +79,7 @@ struct SearchView: View {
                                     NavigationLink(destination: DetailView(item: item)) {
                                         VStack {
                                             HStack(alignment: .top, spacing: 10) {
-                                                if let imageUrl = item.image.imageUrl,
+                                                if let imageUrl = item.image?.imageUrl,
                                                    let url = URL(string: imageUrl) {
                                                     AsyncImage(url: url) { phase in
                                                         switch phase {
