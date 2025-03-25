@@ -4,267 +4,208 @@
 //
 //  Created by Dragon P on 2/25/25.
 //  Worked on by Emmanuel G on 3/13/25
+//  Supabase link 3/25/25
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct InventoryView: View {
-    @State private var searchText: String = ""
-    @State private var sortOption: SortOption = .mostRecent
-    @State private var selectedItems: Set<UUID> = []
-    @State private var isEditing: Bool = false
-    @State private var showAddItemSheet: Bool = false
-    
-    private func toggleItemStatus(_ item: InventoryItem) {
-        if let index = inventoryItems.firstIndex(where: { $0.id == item.id }) {
-            inventoryItems[index].status = (inventoryItems[index].status == "Sold") ? "Active" : "Sold"
-        }
-    }
+    @StateObject private var viewModel = InventoryViewModel()
 
-    enum SortOption: String, CaseIterable {
-        case highToLow = "Price: High to Low"
-        case lowToHigh = "Price: Low to High"
-        case mostRecent = "Most Recent"
-        case earliest = "Earliest"
-        case sold = "Sold"
-        case notSold = "Not Sold"
-    }
+    // Sheet Control
+    @State private var showAddSheet = false
+    @State private var showDetailSheet = false
 
-    struct InventoryItem: Identifiable {
-        let id = UUID()
-        var name: String
-        var price: Double
-        var status: String
-        var imageName: String?
-    }
+    // Add Item Inputs
+    @State private var newName = ""
+    @State private var newPurchasePrice: String = ""
+    @State private var newSellingPrice: String = ""
+    @State private var newStorageLocation = ""
+    @State private var newNotes = ""
 
-    @State private var inventoryItems = [
-        InventoryItem(name: "Nike Air Force 1", price: 100, status: "Active", imageName: "shoe"),
-        InventoryItem(name: "Jorts (Denim Shorts)", price: 25, status: "Sold", imageName: "pants"),
-        InventoryItem(name: "Vintage Jacket", price: 45, status: "Active", imageName: "jacket"),
-        InventoryItem(name: "Gaming Mouse", price: 30, status: "Sold", imageName: "mouse")
-    ]
-
-    var sortedFilteredItems: [InventoryItem] {
-        var items = inventoryItems
-
-        // Apply search filtering
-        if !searchText.isEmpty {
-            items = items.filter { item in
-                item.name.localizedCaseInsensitiveContains(searchText) ||
-                item.status.localizedCaseInsensitiveContains(searchText)
-            }
-        }
-
-        // Apply sorting
-        switch sortOption {
-            case .highToLow:
-                items.sort { $0.price > $1.price }
-            case .lowToHigh:
-                items.sort { $0.price < $1.price }
-            case .mostRecent:
-                break // Placeholder for real sorting
-            case .earliest:
-                break // Placeholder for real sorting
-            case .sold:
-                items = items.filter { $0.status == "Sold" }
-            case .notSold:
-                items = items.filter { $0.status != "Sold" }
-        }
-        return items
-    }
+    // Selected Item for Detail View
+    @State private var selectedItem: InventoryItem? = nil
 
     var body: some View {
         NavigationView {
             VStack {
-                // Search Bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
-                    
-                    TextField("Search...", text: $searchText)
-                        .padding(7)
+                // Status Filter Picker
+                Picker("Filter", selection: $viewModel.selectedStatus) {
+                    Text("All").tag("all")
+                    Text("Active").tag("active")
+                    Text("Sold").tag("sold")
+                    Text("Deadpile").tag("deadpile")
                 }
-                .padding(10)
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .pickerStyle(SegmentedPickerStyle())
                 .padding(.horizontal)
 
-                // Sorting Options
-                Picker("Sort By", selection: $sortOption) {
-                    ForEach(SortOption.allCases, id: \.self) {
-                        Text($0.rawValue)
-                    }
-                }
-                .pickerStyle(MenuPickerStyle())
-                .padding()
-
-                // Export Data Button (Placeholder)
-                Button(action: {
-                    print("Export Data button tapped - Feature to be implemented.")
-                    // Placeholder for future CSV export functionality
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up")
-                        Text("Export Data")
-                    }
-                    .font(.headline)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.green)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                }
-                .padding(.horizontal)
-
-                // Inventory List (Default View)
-                List {
-                    ForEach(sortedFilteredItems) { item in
-                        InventoryListItem(item: item, isSelected: selectedItems.contains(item.id))
-                            .onTapGesture {
-                                if isEditing {
-                                    if selectedItems.contains(item.id) {
-                                        selectedItems.remove(item.id)
-                                    } else {
-                                        selectedItems.insert(item.id)
-                                    }
-                                } else {
-                                    print("Open Detail View for \(item.name)")
-                                }
-                            }
-                            .swipeActions(edge: .leading) { // Swipe right to update status
+                // Inventory List
+                Group {
+                    if viewModel.isLoading {
+                        ProgressView("Loading inventory...")
+                    } else if viewModel.filteredItems.isEmpty {
+                        Text("No items found.")
+                            .foregroundColor(.gray)
+                            .padding()
+                    } else {
+                        List {
+                            ForEach(viewModel.filteredItems) { item in
                                 Button {
-                                    toggleItemStatus(item)
+                                    selectedItem = item
+                                    showDetailSheet = true
                                 } label: {
-                                    Label(item.status == "Sold" ? "Update to Active" : "Update to Sold",
-                                          systemImage: item.status == "Sold" ? "arrow.uturn.backward.circle.fill" : "checkmark.circle.fill")
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(item.name)
+                                            .font(.headline)
+                                        if let price = item.selling_price {
+                                            Text("Selling: $\(price, specifier: "%.2f")")
+                                                .font(.subheadline)
+                                        }
+                                        Text("Status: \(item.status.capitalized)")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding(.vertical, 5)
+                                    .contentShape(Rectangle())
                                 }
-                                .tint(item.status == "Sold" ? .blue : .red) // Red for Sold, Blue for Active
+                                .buttonStyle(PlainButtonStyle())
                             }
-                    }
-                    .onDelete { indexSet in
-                        for index in indexSet {
-                            let itemToDelete = sortedFilteredItems[index]
-                            if let originalIndex = inventoryItems.firstIndex(where: { $0.id == itemToDelete.id }) {
-                                inventoryItems.remove(at: originalIndex)
-                            }
+                            .onDelete(perform: deleteItems)
                         }
                     }
-                }
-                .listStyle(InsetGroupedListStyle())
-
-                // Multi-Select Toolbar
-                if isEditing {
-                    HStack {
-                        Button("Mark as Sold") {
-                            for id in selectedItems {
-                                if let index = inventoryItems.firstIndex(where: { $0.id == id }) {
-                                    inventoryItems[index].status = "Sold"
-                                }
-                            }
-                            selectedItems.removeAll()
-                        }
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-
-                        Button("Delete") {
-                            inventoryItems.removeAll { selectedItems.contains($0.id) }
-                            selectedItems.removeAll()
-                        }
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                    }
-                    .padding()
-                }
-
-                // Floating Add Button
-                Button(action: { showAddItemSheet = true }) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24))
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .clipShape(Circle())
-                        .shadow(radius: 5)
-                }
-                .padding()
-                .sheet(isPresented: $showAddItemSheet) {
-                    AddNewItemView(inventoryItems: $inventoryItems)
                 }
             }
             .navigationTitle("Inventory")
-            .navigationBarItems(trailing: EditButton().onTapGesture {
-                isEditing.toggle()
-                selectedItems.removeAll()
-            })
-        }
-    }
-}
-
-// Inventory List Item View
-struct InventoryListItem: View {
-    let item: InventoryView.InventoryItem
-    let isSelected: Bool
-
-    var body: some View {
-        HStack {
-            Image(systemName: item.imageName ?? "cart.fill")
-                .resizable()
-                .frame(width: 40, height: 40)
-                .padding(5)
-
-            VStack(alignment: .leading) {
-                Text(item.name)
-                    .font(.headline)
-                Text("Bought for: $\(item.price, specifier: "%.2f")")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showAddSheet.toggle()
+                    }) {
+                        Image(systemName: "plus")
+                    }
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .bottomBar) {
+                    Button("Export to CSV") {
+                        exportToCSV()
+                    }
+                }
             }
-            Spacer()
-            Text(item.status)
-                .foregroundColor(item.status == "Sold" ? .red : .green)
-            if isSelected {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.blue)
+            .onAppear {
+                viewModel.fetchItems()
+            }
+            .sheet(isPresented: $showAddSheet) {
+                addItemSheet
+            }
+            .sheet(isPresented: $showDetailSheet) {
+                if let item = selectedItem {
+                    InventoryItemDetailView(item: item)
+                        .environmentObject(viewModel)
+                }
             }
         }
     }
-}
 
-// Add New Item View
-struct AddNewItemView: View {
-    @Binding var inventoryItems: [InventoryView.InventoryItem]
-    @Environment(\.presentationMode) var presentationMode
-    @State private var name: String = ""
-    @State private var price: String = ""
-    @State private var status: String = "Active"
+    // MARK: - Delete
+    private func deleteItems(at offsets: IndexSet) {
+        for index in offsets {
+            let item = viewModel.filteredItems[index]
+            viewModel.deleteItem(item)
+        }
+    }
 
-    var body: some View {
+    // MARK: - Add Item Sheet
+    var addItemSheet: some View {
         NavigationView {
             Form {
-                TextField("Name", text: $name)
-                TextField("Price", text: $price)
-                    .keyboardType(.decimalPad)
-                Picker("Status", selection: $status) {
-                    Text("Active").tag("Active")
-                    Text("Sold").tag("Sold")
+                Section(header: Text("Item Info")) {
+                    TextField("Name", text: $newName)
+                    TextField("Purchase Price", text: $newPurchasePrice)
+                        .keyboardType(.decimalPad)
+                    TextField("Selling Price", text: $newSellingPrice)
+                        .keyboardType(.decimalPad)
+                    TextField("Storage Location", text: $newStorageLocation)
+                    TextField("Notes", text: $newNotes)
                 }
             }
-            .navigationBarItems(trailing: Button("Save") {
-                if let priceValue = Double(price) {
-                    inventoryItems.append(InventoryView.InventoryItem(name: name, price: priceValue, status: status))
-                    presentationMode.wrappedValue.dismiss()
+            .navigationTitle("Add New Item")
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add") {
+                        let purchase = Double(newPurchasePrice)
+                        let selling = Double(newSellingPrice)
+                        viewModel.addItem(
+                            name: newName,
+                            purchasePrice: purchase,
+                            sellingPrice: selling,
+                            storageLocation: newStorageLocation,
+                            notes: newNotes
+                        )
+                        showAddSheet = false
+                        clearAddItemFields()
+                    }
+                    .disabled(newName.isEmpty)
                 }
-            })
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showAddSheet = false
+                        clearAddItemFields()
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Reset Fields
+    func clearAddItemFields() {
+        newName = ""
+        newPurchasePrice = ""
+        newSellingPrice = ""
+        newStorageLocation = ""
+        newNotes = ""
+    }
+
+    // MARK: - Export CSV
+    func exportToCSV() {
+        let fileName = "Inventory_Export.csv"
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+
+        var csvText = "Name,Purchase Price,Selling Price,Storage Location,Notes,Status,Date Added\n"
+
+        for item in viewModel.items {
+            let row = [
+                item.name,
+                item.purchase_price.map { String($0) } ?? "",
+                item.selling_price.map { String($0) } ?? "",
+                item.storage_location ?? "",
+                item.notes ?? "",
+                item.status.capitalized,
+                item.date_added
+            ]
+            .map { $0.replacingOccurrences(of: ",", with: " ") } // clean commas
+            .joined(separator: ",")
+
+            csvText += row + "\n"
+        }
+
+        do {
+            try csvText.write(to: fileURL, atomically: true, encoding: .utf8)
+
+            let activityVC = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let root = scene.windows.first?.rootViewController {
+                root.present(activityVC, animated: true)
+            }
+        } catch {
+            print("❌ Failed to write CSV: \(error.localizedDescription)")
         }
     }
 }
+
 
 #Preview {
     InventoryView()
 }
-
