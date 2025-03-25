@@ -195,6 +195,9 @@
 			);
 			mainGroup = 9120D8822D5EA12200BE9A53;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				BD1319FE2D9345F4005BA776 /* XCRemoteSwiftPackageReference "CoreXLSX" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9120D88C2D5EA12200BE9A53 /* Products */;
 			projectDirPath = "";
@@ -396,7 +399,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftAPI/Preview Content\"";
-				DEVELOPMENT_TEAM = 4WF3QBMPHA;
+				DEVELOPMENT_TEAM = CH2P7XZRNM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = EZ_Flip;
@@ -410,7 +413,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.DragonPhiansin.SwiftAPI;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.EmmanuelGalang.SwiftAPI-com.EmmanuelGalang.SwiftAPI-com.EmmanuelGalang.SwiftAPI";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -426,7 +429,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftAPI/Preview Content\"";
-				DEVELOPMENT_TEAM = 4WF3QBMPHA;
+				DEVELOPMENT_TEAM = CH2P7XZRNM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = EZ_Flip;
@@ -440,7 +443,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.DragonPhiansin.SwiftAPI;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.EmmanuelGalang.SwiftAPI-com.EmmanuelGalang.SwiftAPI-com.EmmanuelGalang.SwiftAPI";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -560,6 +563,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BD1319FE2D9345F4005BA776 /* XCRemoteSwiftPackageReference "CoreXLSX" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CoreOffice/CoreXLSX";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.14.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 9120D8832D5EA12200BE9A53 /* Project object */;
 }
