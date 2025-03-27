@@ -13,23 +13,35 @@ struct DetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Main Image (Centered)
-                if let imageUrl = item.image?.imageUrl, let url = URL(string: imageUrl) {
-                    HStack {
-                        AsyncImage(url: url) { image in
-                            image.resizable().scaledToFit()
-                        } placeholder: {
-                            ProgressView()
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        // Main Image (First in ScrollView)
+                        if let imageUrl = item.image?.imageUrl, let url = URL(string: imageUrl) {
+                            AsyncImage(url: url) { image in
+                                image.resizable().scaledToFit()
+                            } placeholder: {
+                                ProgressView()
+                            }
+                            .frame(width: 250, height: 250)
+                            .cornerRadius(12)
                         }
-                        .frame(height: 250) // Fixed height for main image
-                        .cornerRadius(12)
+
+                        // Additional Images
+                        if let additionalImages = item.additionalImages, !additionalImages.isEmpty {
+                            ForEach(additionalImages, id: \.imageUrl) { imageWrapper in
+                                if let url = URL(string: imageWrapper.imageUrl) {
+                                    AsyncImage(url: url) { image in
+                                        image.resizable().scaledToFit()
+                                    } placeholder: {
+                                        ProgressView()
+                                    }
+                                    .frame(width: 250, height: 250)
+                                    .cornerRadius(12)
+                                }
+                            }
+                        }
                     }
-                    .frame(maxWidth: .infinity) // Center the main image
-                } else {
-                    Text("No Image Available")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity) // Center the text as well
+                    .padding(.horizontal)
                 }
 
                 Text(item.title)
@@ -40,7 +52,7 @@ struct DetailView: View {
                 Text("\(item.price.currency == "USD" ? "$" : item.price.currency) \(item.price.value)")
                     .font(.title3)
                     .foregroundColor(.secondary)
-                
+
                 HStack {
                     Text("Condition: ")
                         .font(.subheadline)
@@ -48,20 +60,6 @@ struct DetailView: View {
                     Text(item.condition ?? "Condition not specified")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                }
-
-                // Displaying first 3 categories
-                if !item.categories.isEmpty {
-                    let categoryText = item.categories.prefix(3).map { $0.categoryName }.joined(separator: ", ")
-                    
-                    HStack {
-                        Text("Categories:")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                        Text(categoryText)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
                 }
                 
                 HStack {
@@ -72,7 +70,7 @@ struct DetailView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-
+                
                 HStack {
                     Text("Feedback Score:")
                         .font(.subheadline)
@@ -82,46 +80,28 @@ struct DetailView: View {
                         .foregroundColor(.secondary)
                 }
 
-                // Link to eBay
+                if !item.categories.isEmpty {
+                    let categoryText = item.categories.prefix(3).map { $0.categoryName }.joined(separator: ", ")
+                    HStack {
+                        Text("Categories:")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Text(categoryText)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
                 Link("View on eBay", destination: URL(string: item.itemWebUrl)!)
                     .foregroundColor(.blue)
                     .padding()
                     .background(Color(.systemGray5))
                     .cornerRadius(10)
 
-                // Displaying additional images if available
-                if let additionalImages = item.additionalImages, !additionalImages.isEmpty {
-                    Text("Additional Images:")
-                        .font(.headline)
-                        .padding(.top, 16)
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            // Safely unwrap and iterate through additionalImages
-                            ForEach(additionalImages, id: \.imageUrl) { imageWrapper in
-                                if let url = URL(string: imageWrapper.imageUrl) {
-                                    AsyncImage(url: url) { image in
-                                        image.resizable().scaledToFit()
-                                    } placeholder: {
-                                        ProgressView()
-                                    }
-                                    .frame(width: 120, height: 120) // Smaller size for additional images
-                                    .cornerRadius(8)
-                                }
-                            }
-                        }
-                        .padding(.top, 8)
-                    }
-                } else {
-                    Text("No additional images available.")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .multilineTextAlignment(.center)
-                }
-                
                 Spacer()
             }
             .padding()
-            .frame(maxWidth: .infinity, alignment: .leading) // Removed maxHeight constraint
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationTitle("Item Details")
     }
