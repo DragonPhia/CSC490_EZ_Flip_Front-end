@@ -6,18 +6,23 @@
 //
 
 import SwiftUI
+import GoogleSignIn
+
 
 struct Dashboard: View {
+    @Binding var user: User?
 
-    init() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor.black
-        
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-        UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray
-    }
+        init(user: Binding<User?>) {  // ✅ Explicit initializer
+            self._user = user  // ✅ Assign Binding
+
+            let appearance = UITabBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = UIColor.black
+            
+            UITabBar.appearance().standardAppearance = appearance
+            UITabBar.appearance().scrollEdgeAppearance = appearance
+            UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray
+        }
 
     @State private var selectedTab = 0  // Default tab index
 
@@ -39,17 +44,30 @@ struct Dashboard: View {
                 }
                 .tag(0)
 
-            ProfileView()
-                .tabItem {
-                    Image(systemName: "person.circle")
-                    Text("You")
-                }
-                .tag(2)
+            if let user = user {
+                ProfileView(user: self.$user)  // ✅ Pass user binding
+                    .tabItem {
+                        Image(systemName: "person.circle")
+                        Text("Hi there, \(user.name)")
+                    }
+                    .tag(2)
+            } else {
+                LoginView(user: self.$user)  // ✅ Pass user binding
+                    .onOpenURL { url in
+                        GIDSignIn.sharedInstance.handle(url)
+                    }
+                    .tabItem {
+                        Image(systemName: "person.circle")
+                        Text("Profile")
+                    }
+                    .tag(2)
+            }
+            
         }
 
     }
 }
 
 #Preview {
-    Dashboard()
+    Dashboard(user: .constant(nil)) 
 }
