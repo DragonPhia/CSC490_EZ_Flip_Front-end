@@ -50,8 +50,10 @@ struct CameraView: UIViewControllerRepresentable {
         previewLayer.videoGravity = .resizeAspectFill
         viewController.view.layer.addSublayer(previewLayer)
 
-        // Start the camera session
-        session.startRunning()
+        // Start the camera session on a background thread
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.startRunning()
+        }
 
         return viewController
     }

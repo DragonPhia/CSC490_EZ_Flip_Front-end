@@ -12,12 +12,22 @@ struct VisualScanView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var capturedImage: UIImage? = nil
     @State private var selectedImage: UIImage? = nil
+    @StateObject private var viewModel = SearchViewModel()  // ViewModel to handle search
+
+    // Add a closure to handle the image selection
+    var onImageSelected: (UIImage) -> Void
+
+    @Environment(\.presentationMode) private var presentationMode
 
     var body: some View {
         ZStack {
             // CameraView displays the live camera feed
             CameraView(didCaptureImage: { image in
                 self.capturedImage = image
+                if let image = capturedImage {
+                    onImageSelected(image)  // Pass the captured image back to the parent view
+                    presentationMode.wrappedValue.dismiss()  // Dismiss after the image is selected
+                }
             })
             .edgesIgnoringSafeArea(.all)
 
@@ -32,12 +42,12 @@ struct VisualScanView: View {
                             .cornerRadius(10)
                     }
                     .onChange(of: selectedItem) { newValue in
-                        // Handle the change when `selectedItem` changes
+                        // Handle the change when selectedItem changes
                         if let selectedItem = newValue {
                             loadImage(from: selectedItem)
                         }
                     }
-                    .padding(.top, 20) 
+                    .padding(.top, 20)
                     .padding(.trailing, 20)
                 }
                 Spacer()
@@ -65,6 +75,8 @@ struct VisualScanView: View {
                 if let data = try await item.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
                     selectedImage = image
+                    onImageSelected(image)  // Pass the selected image back to the parent view
+                    presentationMode.wrappedValue.dismiss()  // Dismiss after the image is selected
                 }
             } catch {
                 print("Error loading selected item: \(error)")

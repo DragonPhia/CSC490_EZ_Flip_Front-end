@@ -27,7 +27,9 @@ struct SearchView: View {
                     .cornerRadius(10)
                     .frame(maxWidth: .infinity)
 
-                    NavigationLink(destination: VisualScanView()) {
+                    NavigationLink(destination: VisualScanView(onImageSelected: { image in
+                        viewModel.searchByImage(image: image)  // Call searchByImage on image selection
+                    })) {
                         Image(systemName: "camera")
                             .padding(10)
                             .background(Color.green.opacity(0.8))

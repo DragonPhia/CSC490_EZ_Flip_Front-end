@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import UIKit
 
 class SearchViewModel: ObservableObject {
     @Published var searchText = ""
@@ -31,6 +32,26 @@ class SearchViewModel: ObservableObject {
         let normalizedQuery = preprocessQuery(query: searchText)
         
         EbayAPIService.fetchItems(query: normalizedQuery)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    print("Error fetching data: \(error)")
+                }
+                self.isLoading = false
+            }, receiveValue: { response in
+                self.results = response.activeListings
+                self.averageListedPrice = Double(response.averageListedPrice) ?? 0.0
+                self.totalActiveListings = response.totalActiveListings
+                self.loadedItemCount = min(20, self.results.count) // Reset with 20 or less
+            })
+            .store(in: &cancellables)
+    }
+    
+    // New function to search by image
+    func searchByImage(image: UIImage) {
+        isLoading = true
+        
+        EbayAPIService.searchByImage(image: image)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
                 if case .failure(let error) = completion {
