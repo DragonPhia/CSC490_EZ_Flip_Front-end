@@ -17,36 +17,29 @@ struct SearchView: View {
             VStack(spacing: 10) {
                 // Search Bar + Image Preview in one HStack
                 HStack(spacing: 8) {
-                    // Image preview (if any)
+                    // Image preview inside the search bar (if any)
                     if let image = selectedImage {
-                        HStack(spacing: 4) {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 36, height: 36)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                                .shadow(radius: 1)
-
-                            Button(action: {
-                                selectedImage = nil
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.red)
-                            }
-                        }
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 54, height: 54) 
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .shadow(radius: 2) // Optional: Add shadow to signify selection
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.blue, lineWidth: 2) // Border to signify selection
+                            )
                     }
 
                     // Search Field
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
-                        TextField("Search for an item...", text: $viewModel.searchText, onCommit: viewModel.fetchResults)
+                        TextField("Search for an item...", text: $viewModel.searchText, onCommit: {
+                            viewModel.fetchResults() // Fetch results when user submits search
+                            selectedImage = nil // Reset selected image when searching
+                        })
                             .padding(7)
-                            .onChange(of: viewModel.searchText) { newValue in
-                                if !newValue.isEmpty {
-                                    selectedImage = nil // Clear image when user types
-                                }
-                            }
                     }
                     .padding(10)
                     .background(Color(.systemGray6))
@@ -55,12 +48,12 @@ struct SearchView: View {
                     // Camera Button
                     NavigationLink(destination: VisualScanView(onImageSelected: { image in
                         viewModel.searchText = ""            // Reset text search
-                        selectedImage = image                // Show preview
+                        selectedImage = image                // Show preview inside search bar
                         viewModel.searchByImage(image: image) // Perform image search
                     })) {
                         Image(systemName: "camera")
                             .padding(10)
-                            .background(Color.green.opacity(0.8))
+                            .background(Color.blue.opacity(0.8))
                             .foregroundColor(.white)
                             .clipShape(Circle())
                     }
@@ -192,6 +185,10 @@ struct SearchView: View {
             }
         }
     }
+}
+
+#Preview {
+    SearchView()
 }
 
 #Preview {
