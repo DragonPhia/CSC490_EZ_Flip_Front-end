@@ -10,27 +10,50 @@ import SwiftUI
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
+    @State private var selectedImage: UIImage? = nil // Added for image preview
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 10) {
-                // Search Bar
-                HStack {
+                // Search Bar + Image Preview in one HStack
+                HStack(spacing: 8) {
+                    // Image preview inside the search bar (if any)
+                    if let image = selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 54, height: 54) 
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .shadow(radius: 2) // Optional: Add shadow to signify selection
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.blue, lineWidth: 2) // Border to signify selection
+                            )
+                    }
+
+                    // Search Field
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
-                        TextField("Search for an item...", text: $viewModel.searchText, onCommit: viewModel.fetchResults)
+                        TextField("Search for an item...", text: $viewModel.searchText, onCommit: {
+                            viewModel.fetchResults() // Fetch results when user submits search
+                            selectedImage = nil // Reset selected image when searching
+                        })
                             .padding(7)
                     }
                     .padding(10)
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
-                    .frame(maxWidth: .infinity)
 
-                    NavigationLink(destination: VisualScanView()) {
+                    // Camera Button
+                    NavigationLink(destination: VisualScanView(onImageSelected: { image in
+                        viewModel.searchText = ""            // Reset text search
+                        selectedImage = image                // Show preview inside search bar
+                        viewModel.searchByImage(image: image) // Perform image search
+                    })) {
                         Image(systemName: "camera")
                             .padding(10)
-                            .background(Color.green.opacity(0.8))
+                            .background(Color.blue.opacity(0.8))
                             .foregroundColor(.white)
                             .clipShape(Circle())
                     }
@@ -51,7 +74,15 @@ struct SearchView: View {
                             Text("Total Active Listings: \(viewModel.totalActiveListings)")
                                 .font(.footnote)
                         }
+
                         Spacer()
+
+                        VStack(alignment: .trailing) {
+                            Text("Highest Price: $\(viewModel.highestPrice, specifier: "%.2f")")
+                                .font(.footnote)
+                            Text("Lowest Price: $\(viewModel.lowestPrice, specifier: "%.2f")")
+                                .font(.footnote)
+                        }
                     }
                 }
                 .padding(8)
@@ -154,6 +185,10 @@ struct SearchView: View {
             }
         }
     }
+}
+
+#Preview {
+    SearchView()
 }
 
 #Preview {

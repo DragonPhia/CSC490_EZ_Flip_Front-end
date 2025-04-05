@@ -7,43 +7,58 @@
 
 import SwiftUI
 import PhotosUI
+import AVFoundation
 
 struct VisualScanView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var capturedImage: UIImage? = nil
     @State private var selectedImage: UIImage? = nil
+    @StateObject private var viewModel = SearchViewModel()
+
+    var onImageSelected: (UIImage) -> Void
+    @Environment(\.presentationMode) private var presentationMode
 
     var body: some View {
         ZStack {
-            // CameraView displays the live camera feed
+            // Live camera view
             CameraView(didCaptureImage: { image in
                 self.capturedImage = image
+                if let image = capturedImage {
+                    onImageSelected(image)
+                    presentationMode.wrappedValue.dismiss()
+                }
             })
             .edgesIgnoringSafeArea(.all)
 
+            // Bottom-right icon-only photo picker
             VStack {
+                Spacer()
                 HStack {
-                    Spacer() // Pushes the button to the right
+                    Spacer()
                     PhotosPicker(selection: $selectedItem, matching: .images) {
-                        Text("Select from Library")
-                            .padding(10)
-                            .background(Color.blue)
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .font(.system(size: 18)) // Smaller icon
                             .foregroundColor(.white)
-                            .cornerRadius(10)
+                            .padding(10) // Smaller background circle
+                            .background(
+                                LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                               startPoint: .topLeading,
+                                               endPoint: .bottomTrailing)
+                            )
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
                     .onChange(of: selectedItem) { newValue in
-                        // Handle the change when `selectedItem` changes
                         if let selectedItem = newValue {
                             loadImage(from: selectedItem)
                         }
                     }
-                    .padding(.top, 20) 
+                    .padding(.bottom, 30)
                     .padding(.trailing, 20)
                 }
-                Spacer()
             }
 
-            // Display the captured image or selected image
+            // Optional image preview
             if let image = selectedImage ?? capturedImage {
                 VStack {
                     Spacer()
@@ -57,18 +72,26 @@ struct VisualScanView: View {
         }
     }
 
-    // Function to load the image asynchronously from the photo library
+    // Async image loader
     private func loadImage(from item: PhotosPickerItem) {
         Task {
             do {
-                // Load image data
                 if let data = try await item.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
                     selectedImage = image
+                    onImageSelected(image)
+                    presentationMode.wrappedValue.dismiss()
                 }
             } catch {
                 print("Error loading selected item: \(error)")
             }
         }
+    }
+}
+
+struct VisualScanView_Previews: PreviewProvider {
+    static var previews: some View {
+        VisualScanView(onImageSelected: { _ in })
+            .edgesIgnoringSafeArea(.all)
     }
 }
