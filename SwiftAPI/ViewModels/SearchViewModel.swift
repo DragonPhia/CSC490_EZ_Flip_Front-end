@@ -15,6 +15,8 @@ class SearchViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var averageListedPrice: Double = 0.0
     @Published var totalActiveListings: Int = 0
+    @Published var highestPrice: Double = 0.0  // New property for highest price
+    @Published var lowestPrice: Double = 0.0    // New property for lowest price
     @Published var loadedItemCount: Int = 20  // Start with 20 items
 
     private var cancellables = Set<AnyCancellable>()
@@ -42,6 +44,8 @@ class SearchViewModel: ObservableObject {
                 self.results = response.activeListings
                 self.averageListedPrice = Double(response.averageListedPrice) ?? 0.0
                 self.totalActiveListings = response.totalActiveListings
+                self.highestPrice = Double(response.highestPrice ?? "0.0") ?? 0.0  // Handle nil values
+                self.lowestPrice = Double(response.lowestPrice ?? "0.0") ?? 0.0    // Handle nil values
                 self.loadedItemCount = min(20, self.results.count) // Reset with 20 or less
             })
             .store(in: &cancellables)
@@ -62,11 +66,14 @@ class SearchViewModel: ObservableObject {
                 self.results = response.activeListings
                 self.averageListedPrice = Double(response.averageListedPrice) ?? 0.0
                 self.totalActiveListings = response.totalActiveListings
+                self.highestPrice = Double(response.highestPrice ?? "0.0") ?? 0.0  // Handle nil values
+                self.lowestPrice = Double(response.lowestPrice ?? "0.0") ?? 0.0    // Handle nil values
                 self.loadedItemCount = min(20, self.results.count) // Reset with 20 or less
             })
             .store(in: &cancellables)
     }
-
+    
+    // Load more items if needed
     func loadMoreItemsIfNeeded(item: EbayItem) {
         guard let lastLoadedItem = results.prefix(loadedItemCount).last else { return }
 

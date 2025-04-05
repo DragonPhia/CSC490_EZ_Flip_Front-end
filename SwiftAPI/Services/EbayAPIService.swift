@@ -13,11 +13,15 @@ struct EbayAPIResponse: Codable {
     let averageListedPrice: String
     let totalActiveListings: Int
     let activeListings: [EbayItem]
+    
+    // Make highestPrice and lowestPrice optional
+    let highestPrice: String?
+    let lowestPrice: String?
 }
 
 class EbayAPIService {
     static let baseURL = "https://ezflip.onrender.com/api/search?query="
-    static let imageSearchURL = "http://localhost:3000/api/image-search"
+    static let imageSearchURL = "https://ezflip.onrender.com/api/image-search"
 
     static func fetchItems(query: String) -> AnyPublisher<EbayAPIResponse, Error> {
         let urlString = baseURL + query
