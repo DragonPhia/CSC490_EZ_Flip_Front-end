@@ -141,7 +141,6 @@ struct SearchView: View {
                                                         .foregroundColor(.secondary)
                                                         .padding(.leading)
                                                 }
-
                                                 VStack(alignment: .leading, spacing: 5) {
                                                     Text(item.title)
                                                         .font(.headline)
@@ -149,7 +148,7 @@ struct SearchView: View {
                                                         .foregroundColor(.primary)
                                                     Text("\(item.price.currency == "USD" ? "$" : item.price.currency) \(item.price.value)")
                                                         .font(.subheadline)
-                                                        .foregroundColor(.secondary)
+                                                        .foregroundColor(Color(.systemGreen))
                                                 }
                                                 Spacer()
                                             }
@@ -185,10 +184,6 @@ struct SearchView: View {
             }
         }
     }
-}
-
-#Preview {
-    SearchView()
 }
 
 #Preview {
