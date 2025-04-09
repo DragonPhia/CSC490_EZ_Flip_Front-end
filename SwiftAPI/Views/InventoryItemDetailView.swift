@@ -2,67 +2,85 @@
 //  InventoryItemDetailView.swift
 //  SwiftAPI
 //
-//  Created by Emmanuel G on 3/25/25.
+//  Created by Emmanuel G on 3/13/25.
 //
+
 import SwiftUI
 
 struct InventoryItemDetailView: View {
+    @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: InventoryViewModel
-    var item: InventoryItem
 
+    let item: InventoryItem
     @State private var showEditSheet = false
+    @State private var currentItem: InventoryItem
+
+    init(item: InventoryItem) {
+        self.item = item
+        _currentItem = State(initialValue: item)
+    }
 
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Name")) {
-                    Text(item.name)
-                }
-
-                Section(header: Text("Purchase Price")) {
-                    Text(item.purchase_price != nil ? "$\(item.purchase_price!, specifier: "%.2f")" : "N/A")
-                }
-
-                Section(header: Text("Selling Price")) {
-                    Text(item.selling_price != nil ? "$\(item.selling_price!, specifier: "%.2f")" : "N/A")
-                }
-
-                Section(header: Text("Storage Location")) {
-                    Text(item.storage_location ?? "N/A")
+                Section(header: Text("Item Info")) {
+                    Text("Name: \(currentItem.name)")
+                    if let price = currentItem.selling_price {
+                        Text("Selling Price: $\(price, specifier: "%.2f")")
+                    }
+                    if let purchase = currentItem.purchase_price {
+                        Text("Purchase Price: $\(purchase, specifier: "%.2f")")
+                    }
+                    if let location = currentItem.storage_location {
+                        Text("Storage: \(location)")
+                    }
+                    Text("Status: \(currentItem.status.capitalized)")
+                    Text("Date Added: \(currentItem.date_added)")
                 }
 
                 Section(header: Text("Notes")) {
-                    Text(item.notes ?? "None")
+                    Text(currentItem.notes ?? "None")
                 }
 
-                Section(header: Text("Status")) {
-                    Text(item.status.capitalized)
-                }
-
-                Section(header: Text("Date Added")) {
-                    Text(item.date_added)
+                Section(header: Text("Image")) {
+                    if let imageURL = currentItem.imageURL, let url = URL(string: imageURL) {
+                        AsyncImage(url: url) { image in
+                            image.resizable().aspectRatio(contentMode: .fit)
+                        } placeholder: {
+                            ProgressView()
+                        }
+                        .frame(height: 200)
+                        .cornerRadius(8)
+                    } else {
+                        Image(systemName: "photo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 200)
+                            .foregroundColor(.gray)
+                            .opacity(0.4)
+                    }
                 }
             }
             .navigationTitle("Item Details")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Edit") {
                         showEditSheet = true
                     }
                 }
-            }
-            .sheet(isPresented: $showEditSheet) {
-                EditItemSheetView(item: item, showSheet: $showEditSheet) { updatedItem in
-                    if let index = viewModel.items.firstIndex(where: { $0.id == updatedItem.id }) {
-                        viewModel.items[index] = updatedItem
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
                     }
                 }
+            }
+            .sheet(isPresented: $showEditSheet) {
+                EditItemSheetView(item: currentItem, showSheet: $showEditSheet) { updated in
+                    currentItem = updated
+                    viewModel.fetchItems()
+                }
+                .environmentObject(viewModel)
             }
         }
     }
 }
-
-
-
-
