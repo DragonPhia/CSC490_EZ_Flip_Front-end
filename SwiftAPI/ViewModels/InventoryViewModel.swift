@@ -2,7 +2,7 @@
 //  InventoryViewModel.swift
 //  SwiftAPI
 //
-//  Created by Emmanuel G on 3/25/25.
+//  Created by Emmanuel G on 3/13/25.
 //
 
 import Foundation
@@ -10,143 +10,113 @@ import SwiftUI
 
 class InventoryViewModel: ObservableObject {
     @Published var items: [InventoryItem] = []
+    @Published var filteredItems: [InventoryItem] = []
+    @Published var selectedStatus: String = "all"
     @Published var isLoading: Bool = false
-    @Published var selectedStatus: String = "all" // all, active, sold, deadpile
     @Published var selectedImageData: Data? = nil
 
-    var filteredItems: [InventoryItem] {
-        if selectedStatus == "all" {
-            return items
-        } else {
-            return items.filter { $0.status.lowercased() == selectedStatus }
-        }
+    init() {
+        fetchItems()
     }
 
-    // MARK: - Fetch Items
     func fetchItems() {
         isLoading = true
         SupabaseService.shared.fetchItems { result in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {
-                case .success(let fetchedItems):
-                    self.items = fetchedItems
+                case .success(let items):
+                    self.items = items
+                    self.applyFilters()
                 case .failure(let error):
-                    print("❌ Failed to fetch items: \(error.localizedDescription)")
+                    print("❌ Error fetching items: \(error.localizedDescription)")
                 }
             }
         }
     }
 
-    // MARK: - Delete Item
-    func deleteItem(_ item: InventoryItem) {
-        SupabaseService.shared.deleteItem(id: item.id) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success:
-                    self.items.removeAll { $0.id == item.id }
-                case .failure(let error):
-                    print("❌ Delete error: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    // MARK: - Add New Item
-    func addItem(
-        name: String,
-        purchasePrice: Double?,
-        sellingPrice: Double?,
-        storageLocation: String?,
-        notes: String?,
-        status: String = "active"
-    ) {
-        let newItemID = UUID().uuidString
+    func addItem(name: String, purchasePrice: Double?, sellingPrice: Double?, storageLocation: String, notes: String) {
         let newItem = InventoryItem(
-            id: newItemID,
+            id: UUID().uuidString,
             name: name,
             purchase_price: purchasePrice,
             selling_price: sellingPrice,
             storage_location: storageLocation,
             notes: notes,
-            status: status,
-            date_added: ISO8601DateFormatter().string(from: Date())
+            status: "active",
+            date_added: ISO8601DateFormatter().string(from: Date()),
+            imageURL: nil
         )
 
-        func finalizeAdd(with imageURL: String?) {
-            var finalItem = newItem
-            finalItem.imageURL = imageURL
-            SupabaseService.shared.addItem(finalItem) { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let createdItem):
-                        self.items.append(createdItem)
-                    case .failure(let error):
-                        print("❌ Failed to add item: \(error.localizedDescription)")
-                    }
+        SupabaseService.shared.addItem(newItem) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let item):
+                    self.items.append(item)
+                    self.applyFilters()
+                    print("✅ Item added successfully")
+                case .failure(let error):
+                    print("❌ Failed to add item: \(error.localizedDescription)")
                 }
             }
-        }
-
-        if let imageData = selectedImageData {
-            SupabaseService.shared.uploadImage(data: imageData, for: newItemID) { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let url):
-                        finalizeAdd(with: url.absoluteString)
-                    case .failure(let error):
-                        print("❌ Image upload failed: \(error.localizedDescription)")
-                        finalizeAdd(with: nil)
-                    }
-                }
-            }
-        } else {
-            finalizeAdd(with: nil)
         }
     }
 
-    // MARK: - Update Existing Item
-    func updateItem(_ updatedItem: InventoryItem, withImageData imageData: Data?, completion: @escaping (Bool) -> Void) {
-        if let imageData = imageData {
-            SupabaseService.shared.uploadImage(data: imageData, for: updatedItem.id) { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let url):
-                        var updated = updatedItem
-                        updated.imageURL = url.absoluteString
-                        self.pushUpdate(updated, completion: completion)
-                    case .failure(let error):
-                        print("❌ Failed to upload new image: \(error.localizedDescription)")
-                        self.pushUpdate(updatedItem, completion: completion)
-                    }
-                }
-            }
-        } else {
-            pushUpdate(updatedItem, completion: completion)
-        }
-    }
-
-    private func pushUpdate(_ item: InventoryItem, completion: @escaping (Bool) -> Void) {
+    func updateItem(_ item: InventoryItem) {
         SupabaseService.shared.updateItem(item) { result in
             DispatchQueue.main.async {
                 switch result {
-                case .success:
-                    print("✅ Updated item in Supabase with image")
+                case .success():
                     if let index = self.items.firstIndex(where: { $0.id == item.id }) {
                         self.items[index] = item
+                        self.applyFilters()
+                        print("✅ Item updated")
                     }
-                    completion(true)
                 case .failure(let error):
-                    print("❌ Update error: \(error.localizedDescription)")
-                    completion(false)
+                    print("❌ Update failed: \(error.localizedDescription)")
                 }
             }
         }
     }
 
-    // MARK: - Clear Image Field
-    func clearAddItemFields() {
-        selectedImageData = nil
+    func deleteItem(_ item: InventoryItem) {
+        SupabaseService.shared.deleteItem(id: item.id) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success():
+                    self.items.removeAll { $0.id == item.id }
+                    self.applyFilters()
+                case .failure(let error):
+                    print("❌ Deletion failed: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    func applyFilters() {
+        if selectedStatus == "all" {
+            filteredItems = items
+        } else {
+            filteredItems = items.filter { $0.status.lowercased() == selectedStatus.lowercased() }
+        }
+    }
+
+    // MARK: - Summary Computed Stats
+    var totalSold: Int {
+        items.filter { $0.status.lowercased() == "sold" }.count
+    }
+
+    var totalSoldPurchaseCost: Double {
+        items.filter { $0.status.lowercased() == "sold" }
+            .compactMap { $0.purchase_price }
+            .reduce(0, +)
+    }
+
+    var totalSoldValue: Double {
+        items.filter { $0.status.lowercased() == "sold" }
+            .compactMap { $0.selling_price }
+            .reduce(0, +)
     }
 }
+
 
