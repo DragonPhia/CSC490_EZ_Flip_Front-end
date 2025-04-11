@@ -4,39 +4,33 @@
 //
 //  Created by Dragon P on 2/26/25.
 //
-
 import SwiftUI
-
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
     @State private var selectedImage: UIImage? = nil // Added for image preview
-
     var body: some View {
         NavigationStack {
             VStack(spacing: 10) {
-                // Search Bar + Image Preview in one HStack
                 HStack(spacing: 8) {
-                    // Image preview inside the search bar (if any)
                     if let image = selectedImage {
                         Image(uiImage: image)
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 54, height: 54) 
+                            .frame(width: 54, height: 54)
                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .shadow(radius: 2) // Optional: Add shadow to signify selection
+                            .shadow(radius: 2)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6)
                                     .stroke(Color.blue, lineWidth: 2) // Border to signify selection
                             )
                     }
-
                     // Search Field
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
                         TextField("Search for an item...", text: $viewModel.searchText, onCommit: {
-                            viewModel.fetchResults() // Fetch results when user submits search
+                            viewModel.fetchResults()
                             selectedImage = nil // Reset selected image when searching
                         })
                             .padding(7)
@@ -44,12 +38,11 @@ struct SearchView: View {
                     .padding(10)
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
-
                     // Camera Button
                     NavigationLink(destination: VisualScanView(onImageSelected: { image in
-                        viewModel.searchText = ""            // Reset text search
-                        selectedImage = image                // Show preview inside search bar
-                        viewModel.searchByImage(image: image) // Perform image search
+                        viewModel.searchText = ""
+                        selectedImage = image
+                        viewModel.searchByImage(image: image)
                     })) {
                         Image(systemName: "camera")
                             .padding(10)
@@ -60,28 +53,29 @@ struct SearchView: View {
                 }
                 .frame(maxWidth: 400)
                 .padding(.horizontal)
-
                 // Market Insights
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Market Insights")
                         .font(.subheadline)
                         .foregroundColor(.primary)
-
+                        .bold()
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Avg. Listed Price: $\(viewModel.averageListedPrice, specifier: "%.2f")")
                                 .font(.footnote)
+                                .bold()
                             Text("Total Active Listings: \(viewModel.totalActiveListings)")
                                 .font(.footnote)
+                                .bold()
                         }
-
                         Spacer()
-
                         VStack(alignment: .trailing) {
                             Text("Highest Price: $\(viewModel.highestPrice, specifier: "%.2f")")
                                 .font(.footnote)
+                                .bold()
                             Text("Lowest Price: $\(viewModel.lowestPrice, specifier: "%.2f")")
                                 .font(.footnote)
+                                .bold()
                         }
                     }
                 }
@@ -91,13 +85,11 @@ struct SearchView: View {
                 .cornerRadius(8)
                 .shadow(radius: 2)
                 .padding(.horizontal)
-
                 // Item List
                 ZStack {
                     ScrollView(showsIndicators: false) {
                         LazyVStack(spacing: 10) {
                             Color.clear.frame(height: 1)
-
                             if viewModel.isLoading {
                                 ProgressView("Searching...")
                                     .padding()
@@ -106,6 +98,7 @@ struct SearchView: View {
                                     .foregroundColor(.secondary)
                                     .padding()
                             } else {
+                                // Ebay item
                                 ForEach(viewModel.results.prefix(viewModel.loadedItemCount)) { item in
                                     NavigationLink(destination: DetailView(item: item)) {
                                         VStack {
@@ -121,15 +114,15 @@ struct SearchView: View {
                                                         case .success(let image):
                                                             image.resizable()
                                                                 .scaledToFit()
-                                                                .frame(width: 120, height: 120)
-                                                                .cornerRadius(8)
+                                                                .frame(width: 110, height: 110)
+                                                                .cornerRadius(10)
                                                                 .padding(.leading)
                                                         case .failure:
                                                             Image(systemName: "photo")
                                                                 .resizable()
                                                                 .scaledToFit()
-                                                                .frame(width: 120, height: 120)
-                                                                .cornerRadius(8)
+                                                                .frame(width: 110, height: 110)
+                                                                .cornerRadius(10)
                                                                 .padding(.leading)
                                                         @unknown default:
                                                             EmptyView()
@@ -141,7 +134,7 @@ struct SearchView: View {
                                                         .foregroundColor(.secondary)
                                                         .padding(.leading)
                                                 }
-                                                VStack(alignment: .leading, spacing: 5) {
+                                                VStack(alignment: .leading, spacing: 6) {
                                                     Text(item.title)
                                                         .font(.headline)
                                                         .multilineTextAlignment(.leading)
@@ -152,9 +145,9 @@ struct SearchView: View {
                                                 }
                                                 Spacer()
                                             }
-                                            .padding()
+                                            .padding(10)
                                         }
-                                        .frame(maxWidth: .infinity, minHeight: 120)
+                                        .frame(maxWidth: .infinity, minHeight: 110)
                                         .background(Color(.systemGray6))
                                         .cornerRadius(12)
                                         .shadow(radius: 3)
@@ -164,7 +157,6 @@ struct SearchView: View {
                                         }
                                     }
                                 }
-
                                 if viewModel.loadedItemCount < viewModel.results.count {
                                     ProgressView("Loading more items...")
                                         .padding()
@@ -173,7 +165,6 @@ struct SearchView: View {
                                         }
                                 }
                             }
-
                             Color.clear.frame(height: 2)
                         }
                     }
@@ -185,7 +176,6 @@ struct SearchView: View {
         }
     }
 }
-
 #Preview {
     SearchView()
 }
