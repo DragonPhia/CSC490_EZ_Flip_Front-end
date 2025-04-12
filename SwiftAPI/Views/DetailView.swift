@@ -4,7 +4,9 @@
 //
 //  Created by Dragon P on 3/9/25.
 //
+
 import SwiftUI
+
 struct DetailView: View {
     let item: EbayItem
     var body: some View {

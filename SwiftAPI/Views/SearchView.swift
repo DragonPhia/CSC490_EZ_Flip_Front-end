@@ -4,26 +4,61 @@
 //
 //  Created by Dragon P on 2/26/25.
 //
+
 import SwiftUI
+
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
-    @State private var selectedImage: UIImage? = nil // Added for image preview
+    @State private var selectedImage: UIImage? = nil
+    @State private var isImageExpanded = false // State to control image expansion
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 10) {
                 HStack(spacing: 8) {
                     if let image = selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 54, height: 54)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .shadow(radius: 2)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.blue, lineWidth: 2) // Border to signify selection
-                            )
+                        Button(action: {
+                            isImageExpanded.toggle() // Toggle image expansion
+                        }) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 54, height: 54)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                .shadow(radius: 2)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.blue, lineWidth: 2)
+                                )
+                        }
+                        .sheet(isPresented: $isImageExpanded) {
+                            ZStack(alignment: .bottom) {
+                                Color.black.ignoresSafeArea()
+                                
+                                if let selectedImage = selectedImage {
+                                    Image(uiImage: selectedImage)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        .background(Color.black)
+                                }
+
+                                Button(action: {
+                                    InventoryView.sharedAddSheetTrigger.send(selectedImage!)
+                                    isImageExpanded = false
+                                }) {
+                                    Text("Add to Inventory")
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(12)
+                                        .padding(.horizontal)
+                                }
+                                .padding(.bottom, 30)
+                            }
+                        }
                     }
                     // Search Field
                     HStack {
@@ -176,6 +211,7 @@ struct SearchView: View {
         }
     }
 }
+
 #Preview {
     SearchView()
 }
