@@ -8,17 +8,17 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var username: String = "JohnDoe"
-    @State private var email: String = "johndoe@example.com"
+    @State private var username: String = UserDefaults.standard.string(forKey: "userName") ?? "JohnDoe"
+    @State private var email: String = UserDefaults.standard.string(forKey: "userEmail") ?? "johndoe@example.com"
     @State private var preferredCurrency: String = "USD"
     @State private var notificationsEnabled: Bool = true
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
-    
+    @AppStorage("isLoggedIn") private var isLoggedIn: Bool = true
+
     let currencies = ["USD", "EUR", "GBP", "JPY", "AUD"]
-    
+
     var body: some View {
         NavigationView {
-            
             Form {
                 Section(header: Text("Profile")) {
                     HStack {
@@ -32,36 +32,31 @@ struct ProfileView: View {
                         }
                     }
                 }
-                
+
                 Section(header: Text("User Settings")) {
                     Picker("Preferred Currency", selection: $preferredCurrency) {
                         ForEach(currencies, id: \.self) { currency in
                             Text(currency)
                         }
                     }
-                    
+
                     Toggle("Dark Mode", isOn: $isDarkMode)
                 }
-                
-                Section(header: Text("eBay Account")) {
-                    Button("Connect eBay Account") {
-                        // eBay account connection
-                    }
-                    .foregroundColor(.blue)
-                }
-                
+
                 Section {
-                    Button("Save Changes") {
-                        // save action
+                    Button("Log Out") {
+                        isLoggedIn = false
+                        UserDefaults.standard.removeObject(forKey: "userEmail")
+                        UserDefaults.standard.removeObject(forKey: "userName")
                     }
                     .frame(maxWidth: .infinity)
                     .foregroundColor(.white)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.red)
                     .cornerRadius(10)
                 }
             }
-            .preferredColorScheme(isDarkMode ? .dark : .light) // Apply dark mode setting
+            .preferredColorScheme(isDarkMode ? .dark : .light)
             .navigationTitle("Profile")
         }
     }
@@ -70,3 +65,5 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
 }
+
+
