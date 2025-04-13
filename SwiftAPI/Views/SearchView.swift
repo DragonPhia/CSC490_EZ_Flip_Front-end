@@ -44,6 +44,7 @@ struct SearchView: View {
                                         .background(Color.black)
                                 }
 
+                                // Button to add to inventory w/ image
                                 Button(action: {
                                     InventoryView.sharedAddSheetTrigger.send(selectedImage!)
                                     isImageExpanded = false

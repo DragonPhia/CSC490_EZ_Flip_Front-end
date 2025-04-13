@@ -10,13 +10,15 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import PhotosUI
-import Combine
+import Combine // for searchview
 
 struct InventoryView: View {
     @StateObject private var viewModel = InventoryViewModel()
     
     // For external trigger from other views
-    static var sharedAddSheetTrigger = PassthroughSubject<UIImage, Never>()
+    static var sharedAddSheetTrigger = PassthroughSubject<UIImage, Never>() // for searchview
+    // New Combine storage
+    @State private var cancellables = Set<AnyCancellable>() // for searchview
 
     // Sheet Control
     @State private var showAddSheet = false
@@ -29,9 +31,6 @@ struct InventoryView: View {
     @State private var newStorageLocation = ""
     @State private var newNotes = ""
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
-    
-    // New Combine storage
-    @State private var cancellables = Set<AnyCancellable>()
 
     // Selected Item for Detail View
     @State private var selectedItem: InventoryItem? = nil

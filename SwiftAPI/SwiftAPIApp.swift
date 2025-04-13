@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct SwiftAPIApp: App {
+    @AppStorage("isLoggedIn") private var isLoggedIn = false
+
     var body: some Scene {
         WindowGroup {
-            Dashboard()
+            if isLoggedIn {
+                Dashboard()
+            } else {
+                ContentView()
+            }
         }
     }
 }
