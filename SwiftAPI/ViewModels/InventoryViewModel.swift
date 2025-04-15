@@ -45,10 +45,30 @@ class InventoryViewModel: ObservableObject {
             notes: notes,
             status: "active",
             date_added: ISO8601DateFormatter().string(from: Date()),
-            imageURL: nil
+            imageURL: nil  // Start with nil and set it later after upload
         )
 
-        SupabaseService.shared.addItem(newItem) { result in
+        if let imageData = selectedImageData {
+            // Upload the image and get the public URL
+            SupabaseService.shared.uploadImage(data: imageData, for: newItem.id) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let imageURL):
+                        var updatedItem = newItem
+                        updatedItem.imageURL = imageURL.absoluteString  // Store the public URL in inventory item
+                        self.saveItem(updatedItem)  // Save the item to the database
+                    case .failure(let error):
+                        print("❌ Image upload failed: \(error.localizedDescription)")
+                    }
+                }
+            }
+        } else {
+            self.saveItem(newItem)
+        }
+    }
+
+    private func saveItem(_ item: InventoryItem) {
+        SupabaseService.shared.addItem(item) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let item):
@@ -101,7 +121,6 @@ class InventoryViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Summary Computed Stats
     var totalSold: Int {
         items.filter { $0.status.lowercased() == "sold" }.count
     }
@@ -118,5 +137,4 @@ class InventoryViewModel: ObservableObject {
             .reduce(0, +)
     }
 }
-
 

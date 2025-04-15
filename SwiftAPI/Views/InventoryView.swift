@@ -65,8 +65,7 @@ struct InventoryView: View {
                                     showDetailSheet = true
                                 } label: {
                                     HStack(alignment: .top, spacing: 12) {
-                                        if let imageURL = item.imageURL?.replacingOccurrences(of: "\\", with: ""),
-                                           let url = URL(string: "\(imageURL)?cache=\(UUID().uuidString)") {
+                                        if let imageURL = item.imageURL, let url = URL(string: imageURL) {
                                             AsyncImage(url: url) { phase in
                                                 switch phase {
                                                 case .empty:

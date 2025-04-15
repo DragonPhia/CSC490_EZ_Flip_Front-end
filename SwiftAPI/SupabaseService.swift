@@ -24,6 +24,10 @@ struct InventoryItem: Identifiable, Codable {
 
 class SupabaseService {
     static let shared = SupabaseService()
+    
+    private let storageURL = "https://nscfwqcjtpkfweokcqha.supabase.co/storage/v1/s3/object/"
+    private let bucketName = "ezflip-images"
+    
 
     private let baseURL = URL(string: "https://nscfwqcjtpkfweokcqha.supabase.co/rest/v1/inventory_items")!
     private let apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zY2Z3cWNqdHBrZndlb2tjcWhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MjExOTQsImV4cCI6MjA1ODQ5NzE5NH0.H01O0pudHfAG5i0fmAyNxdgvK_-UbsZSosBvWKwfA3Y"
@@ -106,14 +110,14 @@ class SupabaseService {
     }
 
     // MARK: - Corrected Image Upload
+    // Upload image method
     func uploadImage(data: Data, for itemID: String, completion: @escaping (Result<URL, Error>) -> Void) {
-        let bucketName = "ezflip-images"
         let path = "images/\(itemID).jpg"
-        let url = URL(string: "https://nscfwqcjtpkfweokcqha.supabase.co/storage/v1/object/\(bucketName)/\(path)")!
+        let uploadURL = URL(string: "https://nscfwqcjtpkfweokcqha.supabase.co/storage/v1/object/\(self.bucketName)/\(path)?upload=1")!
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        var request = URLRequest(url: uploadURL)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(self.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
 
         URLSession.shared.uploadTask(with: request, from: data) { _, response, error in
@@ -122,7 +126,8 @@ class SupabaseService {
                 return
             }
 
-            let publicURL = URL(string: "https://nscfwqcjtpkfweokcqha.supabase.co/storage/v1/object/public/\(bucketName)/\(path)")!
+            // Construct the public URL
+            let publicURL = URL(string: "https://nscfwqcjtpkfweokcqha.supabase.co/storage/v1/object/public/\(self.bucketName)/\(path)")!
             completion(.success(publicURL))
         }.resume()
     }
