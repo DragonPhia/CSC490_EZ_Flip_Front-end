@@ -62,15 +62,18 @@ struct InventoryItemDetailView: View {
                 }
             }
             .navigationTitle("Item Details")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Edit") {
-                        showEditSheet = true
-                    }
-                }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        dismiss()
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Text("Item Details")
+                            .font(.largeTitle)
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Button("Edit") {
+                            showEditSheet = true
+                        }
+                        .font(.body)
                     }
                 }
             }

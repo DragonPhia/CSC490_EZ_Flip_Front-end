@@ -19,11 +19,11 @@ struct InventoryView: View {
     static var sharedAddSheetTrigger = PassthroughSubject<UIImage, Never>() // for searchview
     // New Combine storage
     @State private var cancellables = Set<AnyCancellable>() // for searchview
-
+    
     // Sheet Control
     @State private var showAddSheet = false
     @State private var showDetailSheet = false
-
+    
     // Add Item Inputs
     @State private var newName = ""
     @State private var newPurchasePrice: String = ""
@@ -31,16 +31,16 @@ struct InventoryView: View {
     @State private var newStorageLocation = ""
     @State private var newNotes = ""
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
-
+    
     // Selected Item for Detail View
     @State private var selectedItem: InventoryItem? = nil
-
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 SummaryStatsView(viewModel: viewModel)
                     .padding(.bottom)
-
+                
                 Picker("Filter", selection: $viewModel.selectedStatus) {
                     Text("All").tag("all")
                     Text("Active").tag("active")
@@ -49,7 +49,7 @@ struct InventoryView: View {
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding(.horizontal)
-
+                
                 Group {
                     if viewModel.isLoading {
                         ProgressView("Loading inventory...")
@@ -60,10 +60,7 @@ struct InventoryView: View {
                     } else {
                         List {
                             ForEach(viewModel.filteredItems) { item in
-                                Button {
-                                    selectedItem = item
-                                    showDetailSheet = true
-                                } label: {
+                                NavigationLink(destination: InventoryItemDetailView(item: item).environmentObject(viewModel)) {
                                     HStack(alignment: .top, spacing: 12) {
                                         if let imageURL = item.imageURL, let url = URL(string: imageURL) {
                                             AsyncImage(url: url) { phase in
@@ -97,7 +94,7 @@ struct InventoryView: View {
                                                 .foregroundColor(.gray)
                                                 .opacity(0.3)
                                         }
-
+                                        
                                         VStack(alignment: .leading, spacing: 4) {
                                             Text(item.name)
                                                 .font(.headline)
@@ -113,7 +110,6 @@ struct InventoryView: View {
                                     .padding(.vertical, 5)
                                     .contentShape(Rectangle())
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                             .onDelete(perform: deleteItems)
                         }
@@ -133,7 +129,7 @@ struct InventoryView: View {
                     EditButton()
                 }
                 ToolbarItem(placement: .bottomBar) {
-                    Button("Export to CSV") {
+                    Button("Export Sold Items to CSV") {
                         exportToCSV()
                     }
                 }
@@ -143,28 +139,22 @@ struct InventoryView: View {
                 
                 // for search view
                 InventoryView.sharedAddSheetTrigger
-                        .sink { image in
-                            viewModel.selectedImageData = image.jpegData(compressionQuality: 0.8)
-                            showAddSheet = true
-                        }
-                        .store(in: &cancellables)
+                    .sink { image in
+                        viewModel.selectedImageData = image.jpegData(compressionQuality: 0.8)
+                        showAddSheet = true
+                    }
+                    .store(in: &cancellables)
             }
             .onChange(of: viewModel.selectedStatus) { _ in
                 viewModel.applyFilters()
             }
-
+            
             .sheet(isPresented: $showAddSheet) {
                 addItemSheet
             }
-            .sheet(isPresented: $showDetailSheet) {
-                if let item = selectedItem {
-                    InventoryItemDetailView(item: item)
-                        .environmentObject(viewModel)
-                }
-            }
         }
     }
-
+    
     // MARK: - Delete
     private func deleteItems(at offsets: IndexSet) {
         for index in offsets {
@@ -172,7 +162,7 @@ struct InventoryView: View {
             viewModel.deleteItem(item)
         }
     }
-
+    
     // MARK: - Add Item Sheet
     var addItemSheet: some View {
         NavigationView {
@@ -186,7 +176,7 @@ struct InventoryView: View {
                     TextField("Storage Location", text: $newStorageLocation)
                     TextField("Notes", text: $newNotes)
                 }
-
+                
                 Section(header: Text("Image")) {
                     if let data = viewModel.selectedImageData, let uiImage = UIImage(data: data) {
                         Image(uiImage: uiImage)
@@ -204,7 +194,7 @@ struct InventoryView: View {
                             .opacity(0.4)
                             .padding(.vertical, 4)
                     }
-
+                    
                     PhotosPicker(
                         selection: $selectedPhotoItem,
                         matching: .images,
@@ -248,7 +238,7 @@ struct InventoryView: View {
             }
         }
     }
-
+    
     // MARK: - Reset Fields
     func clearAddItemFields() {
         newName = ""
@@ -258,26 +248,26 @@ struct InventoryView: View {
         newNotes = ""
         viewModel.selectedImageData = nil
     }
-
+    
     // MARK: - Export CSV (Only Sold Items with Business Stats)
     func exportToCSV() {
         let fileName = "Sold_Inventory_Export.csv"
         let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-
+        
         var csvText = "Name,Purchase Price,Selling Price,Storage Location,Notes,Date Added\n"
-
+        
         let soldItems = viewModel.items.filter { $0.status.lowercased() == "sold" }
-
+        
         var totalCost: Double = 0
         var totalRevenue: Double = 0
-
+        
         for item in soldItems {
             let purchasePrice = item.purchase_price ?? 0
             let sellingPrice = item.selling_price ?? 0
-
+            
             totalCost += purchasePrice
             totalRevenue += sellingPrice
-
+            
             let row = [
                 item.name,
                 "\(purchasePrice)",
@@ -286,21 +276,21 @@ struct InventoryView: View {
                 item.notes?.replacingOccurrences(of: ",", with: " ") ?? "",
                 item.date_added
             ].joined(separator: ",")
-
+            
             csvText += row + "\n"
         }
-
+        
         let profitOrLoss = totalRevenue - totalCost
         let profitLossStatus = profitOrLoss >= 0 ? "Profit" : "Loss"
-
+        
         csvText += "\nBusiness Stats,,,\n"
         csvText += "Total Cost,$\(String(format: "%.2f", totalCost))\n"
         csvText += "Total Revenue,$\(String(format: "%.2f", totalRevenue))\n"
         csvText += "\(profitLossStatus),$\(String(format: "%.2f", abs(profitOrLoss)))\n"
-
+        
         do {
             try csvText.write(to: fileURL, atomically: true, encoding: .utf8)
-
+            
             let activityVC = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
             if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let root = scene.windows.first?.rootViewController {
@@ -311,4 +301,3 @@ struct InventoryView: View {
         }
     }
 }
-
