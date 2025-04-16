@@ -78,7 +78,7 @@ struct DetailView: View {
                     Label("Seller:", systemImage: "person.fill")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                    Text(item.seller.username)
+                    Text(item.seller?.username ?? "Unknown seller")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -88,10 +88,19 @@ struct DetailView: View {
                     Label("Feedback Score:", systemImage: "star.fill")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                    Text("\(item.seller.feedbackPercentage)%")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+
+                    if let feedbackString = item.seller?.feedbackPercentage,
+                       let feedback = Double(feedbackString), feedback > 0 {
+                        Text(String(format: "%.1f%% positive feedback", feedback))
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("No feedback available")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
+                .padding(.bottom, 4)
                 .padding(.bottom, 4)
                 // Separator Line
                 Divider()

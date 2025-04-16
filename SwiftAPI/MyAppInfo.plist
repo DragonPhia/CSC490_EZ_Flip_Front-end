@@ -16,21 +16,8 @@
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>We need permission to save images to your photo library.</string>
     
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-        <key>NSExceptionDomains</key>
-        <dict>
-            <key>localhost</key>
-            <dict>
-                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <true/>
-                <key>NSIncludesSubdomains</key>
-                <true/>
-            </dict>
-        </dict>
-    </dict>
+    <key>NSDocumentsUsageDescription</key>
+    <string>Your app requires access to files for exporting data.</string>
     
 </dict>
 </plist>

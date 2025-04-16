@@ -92,6 +92,7 @@ struct ContentView: View {
             }
             .padding()
         }
+        .preferredColorScheme(.light) // Force light mode here
     }
 
     func loginUser() {
