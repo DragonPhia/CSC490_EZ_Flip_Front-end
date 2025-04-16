@@ -13,8 +13,8 @@ struct EbayItem: Identifiable, Codable {
     let title: String
     let image: ImageWrapper?
     let price: Price
-    let seller: Seller
-    let condition: String? 
+    let seller: Seller?
+    let condition: String?
     let itemWebUrl: String
     let categories: [Category]
     let additionalImages: [AdditionalImageWrapper]?
@@ -34,8 +34,8 @@ struct Price: Codable {
 }
 
 struct Seller: Codable {
-    let username: String
-    let feedbackPercentage: String
+    let username: String?
+    let feedbackPercentage: String?
     let feedbackScore: Int
 }
 

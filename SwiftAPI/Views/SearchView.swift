@@ -12,6 +12,8 @@ struct SearchView: View {
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
     @State private var selectedImage: UIImage? = nil
     @State private var isImageExpanded = false // State to control image expansion
+    
+    @State private var hasPreloaded = false
 
     var body: some View {
         NavigationStack {
@@ -208,6 +210,12 @@ struct SearchView: View {
                 .preferredColorScheme(isDarkMode ? .dark : .light)
                 .ignoresSafeArea(.keyboard)
                 .navigationTitle("Find Items")
+            }
+            .onAppear {
+                if !hasPreloaded {
+                    hasPreloaded = true
+                    viewModel.fetchResults(preload: true)
+                }
             }
         }
     }

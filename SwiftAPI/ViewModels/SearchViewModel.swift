@@ -21,15 +21,21 @@ class SearchViewModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     
+    // Flag to indicate if it's preloading (no UI updates)
+    private var isPreloading = false
+    
     func preprocessQuery(query: String) -> String {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedQuery = trimmedQuery.lowercased()
         return normalizedQuery.replacingOccurrences(of: "[^a-zA-Z0-9 ]", with: "", options: .regularExpression)
     }
 
-    func fetchResults() {
+    func fetchResults(preload: Bool = false) {
         guard !searchText.isEmpty else { return }
+        
+        // If preloading, don't update UI with the results
         isLoading = true
+        isPreloading = preload
         
         let normalizedQuery = preprocessQuery(query: searchText)
         
@@ -41,12 +47,15 @@ class SearchViewModel: ObservableObject {
                 }
                 self.isLoading = false
             }, receiveValue: { response in
-                self.results = response.activeListings
-                self.averageListedPrice = Double(response.averageListedPrice) ?? 0.0
-                self.totalActiveListings = response.totalActiveListings
-                self.highestPrice = Double(response.highestPrice ?? "0.0") ?? 0.0  // Handle nil values
-                self.lowestPrice = Double(response.lowestPrice ?? "0.0") ?? 0.0    // Handle nil values
-                self.loadedItemCount = min(20, self.results.count) // Reset with 20 or less
+                if !self.isPreloading {
+                    // Only update the UI if not preloading
+                    self.results = response.activeListings
+                    self.averageListedPrice = Double(response.averageListedPrice) ?? 0.0
+                    self.totalActiveListings = response.totalActiveListings
+                    self.highestPrice = Double(response.highestPrice ?? "0.0") ?? 0.0  // Handle nil values
+                    self.lowestPrice = Double(response.lowestPrice ?? "0.0") ?? 0.0    // Handle nil values
+                    self.loadedItemCount = min(20, self.results.count) // Reset with 20 or less
+                }
             })
             .store(in: &cancellables)
     }

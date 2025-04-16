@@ -44,9 +44,22 @@
 		9120D8A52D5EA12400BE9A53 /* SwiftAPIUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftAPIUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		91CBCED42DAF358D00F4774D /* Exceptions for "SwiftAPI" folder in "SwiftAPI" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				MyAppInfo.plist,
+			);
+			target = 9120D88A2D5EA12200BE9A53 /* SwiftAPI */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9120D88D2D5EA12200BE9A53 /* SwiftAPI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				91CBCED42DAF358D00F4774D /* Exceptions for "SwiftAPI" folder in "SwiftAPI" target */,
+			);
 			path = SwiftAPI;
 			sourceTree = "<group>";
 		};
@@ -438,9 +451,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftAPI/Preview Content\"";
-				DEVELOPMENT_TEAM = 4WF3QBMPHA;
+				DEVELOPMENT_TEAM = 4FTLJN8MY5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_FILE[sdk=*]" = "/Users/drago_1bhjujv/Documents/CSC490_EZ_Flip_Front-end (recent-push-inventory-images-work)/SwiftAPI/MyAppInfo.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = EZ_Flip;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -452,7 +466,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.DragonPhiansin.SwiftAPI;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pnogard.SwiftAPI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -468,7 +482,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftAPI/Preview Content\"";
-				DEVELOPMENT_TEAM = 4WF3QBMPHA;
+				DEVELOPMENT_TEAM = 4FTLJN8MY5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = EZ_Flip;
@@ -482,7 +496,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.DragonPhiansin.SwiftAPI;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pnogard.SwiftAPI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
