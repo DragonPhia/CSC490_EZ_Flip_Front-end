@@ -30,14 +30,14 @@ struct Dashboard: View {
                     Image(systemName: "list.clipboard")
                     Text("Inventory")
                 }
-                .tag(1)
+                .tag(0)
             
             SearchView()
                 .tabItem {
                     Image(systemName: "magnifyingglass")
                     Text("Search")
                 }
-                .tag(0)
+                .tag(1)
 
             ProfileView()
                 .tabItem {
