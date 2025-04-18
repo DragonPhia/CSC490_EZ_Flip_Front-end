@@ -20,6 +20,7 @@ struct InventoryItem: Identifiable, Codable {
     var status: String
     var date_added: String
     var imageURL: String?
+    var user_id: String  // user id
 }
 
 class SupabaseService {
@@ -41,8 +42,9 @@ class SupabaseService {
         ]
     }
 
-    func fetchItems(completion: @escaping (Result<[InventoryItem], Error>) -> Void) {
-        var request = URLRequest(url: baseURL)
+    func fetchItems(for userID: String, completion: @escaping (Result<[InventoryItem], Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)?user_id=eq.\(userID)") else { return }
+        var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.allHTTPHeaderFields = requestHeaders
 

@@ -14,14 +14,21 @@ class InventoryViewModel: ObservableObject {
     @Published var selectedStatus: String = "all"
     @Published var isLoading: Bool = false
     @Published var selectedImageData: Data? = nil
+    
+    private var userId: String? = UserDefaults.standard.string(forKey: "userId")
 
     init() {
         fetchItems()
     }
 
     func fetchItems() {
+        guard let userId = userId else {
+            print("❌ User ID not found in UserDefaults.")
+            return
+        }
+        
         isLoading = true
-        SupabaseService.shared.fetchItems { result in
+        SupabaseService.shared.fetchItems(for: userId) { result in  // ✅ Pass userId here
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {
@@ -36,6 +43,12 @@ class InventoryViewModel: ObservableObject {
     }
 
     func addItem(name: String, purchasePrice: Double?, sellingPrice: Double?, storageLocation: String, notes: String) {
+        
+        guard let userId = userId else {
+            print("❌ User ID not found, cannot add item.")
+            return
+        }
+        
         let newItem = InventoryItem(
             id: UUID().uuidString,
             name: name,
@@ -45,7 +58,8 @@ class InventoryViewModel: ObservableObject {
             notes: notes,
             status: "active",
             date_added: ISO8601DateFormatter().string(from: Date()),
-            imageURL: nil  // Start with nil and set it later after upload
+            imageURL: nil,  // Start with nil and set it later after upload
+            user_id: userId
         )
 
         if let imageData = selectedImageData {

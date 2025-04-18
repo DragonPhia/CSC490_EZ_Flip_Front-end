@@ -127,11 +127,11 @@ struct ContentView: View {
 
                 if httpResponse.statusCode == 200 {
                     if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                        print("Login response:", json)
+                        //print("Login response:", json)
 
                         if let session = json["session"] as? [String: Any],
                            let token = session["access_token"] as? String {
-                            print("Token received: \(token)")
+                            //print("Token received: \(token)")
 
                             if let user = json["user"] as? [String: Any],
                                let identities = user["identities"] as? [[String: Any]],
@@ -143,6 +143,10 @@ struct ContentView: View {
 
                                 if let displayName = identityData["display_name"] as? String {
                                     UserDefaults.standard.set(displayName, forKey: "userName")
+                                }
+                                if let userId = user["id"] as? String {
+                                    UserDefaults.standard.set(userId, forKey: "userId") // <- Store user ID
+                                    print("USER ID!!!!!!: \(userId)")
                                 }
                             }
 

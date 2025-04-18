@@ -111,7 +111,8 @@ struct EditItemSheetView: View {
                             notes: notes,
                             status: status,
                             date_added: item.date_added,
-                            imageURL: item.imageURL
+                            imageURL: item.imageURL,
+                            user_id: item.user_id
                         )
 
                         func finalizeUpdate(with imageURL: String?) {
