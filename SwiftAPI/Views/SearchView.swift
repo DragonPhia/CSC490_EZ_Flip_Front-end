@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
@@ -67,11 +68,27 @@ struct SearchView: View {
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
+
                         TextField("Search for an item...", text: $viewModel.searchText, onCommit: {
                             viewModel.fetchResults()
-                            selectedImage = nil // Reset selected image when searching
+                            selectedImage = nil
                         })
-                            .padding(7)
+                        .padding(7)
+
+                        if !viewModel.searchText.isEmpty || selectedImage != nil || !viewModel.results.isEmpty {
+                            Button(action: {
+                                viewModel.searchText = ""
+                                viewModel.results = []
+                                selectedImage = nil
+                                viewModel.averageListedPrice = 0.0
+                                viewModel.totalActiveListings = 0
+                                viewModel.highestPrice = 0.0
+                                viewModel.lowestPrice = 0.0
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.gray)
+                            }
+                        }
                     }
                     .padding(10)
                     .background(Color(.systemGray6))
@@ -143,7 +160,7 @@ struct SearchView: View {
                                             HStack(alignment: .top, spacing: 10) {
                                                 if let imageUrl = item.image?.imageUrl,
                                                    let url = URL(string: imageUrl) {
-                                                    AsyncImage(url: url) { phase in
+                                                    AsyncImage(url: url, transaction: Transaction(animation: .none)) { phase in
                                                         switch phase {
                                                         case .empty:
                                                             ProgressView()
@@ -180,6 +197,9 @@ struct SearchView: View {
                                                     Text("\(item.price.currency == "USD" ? "$" : item.price.currency) \(item.price.value)")
                                                         .font(.subheadline)
                                                         .foregroundColor(Color(.systemGreen))
+                                                    Text(item.condition ?? "Condition not specified")
+                                                        .font(.caption)
+                                                        .foregroundColor(.gray)
                                                 }
                                                 Spacer()
                                             }
@@ -209,6 +229,10 @@ struct SearchView: View {
                 }
                 .preferredColorScheme(isDarkMode ? .dark : .light)
                 .ignoresSafeArea(.keyboard)
+                .onTapGesture {
+                    hideKeyboard()
+                }
+                .scrollDismissesKeyboard(.interactively)
                 .navigationTitle("Find Items")
             }
             .onAppear {
@@ -218,6 +242,13 @@ struct SearchView: View {
                 }
             }
         }
+    }
+}
+
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                        to: nil, from: nil, for: nil)
     }
 }
 
