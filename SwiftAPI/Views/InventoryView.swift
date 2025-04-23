@@ -15,6 +15,9 @@ import Combine // for searchview
 struct InventoryView: View {
     @StateObject private var viewModel = InventoryViewModel()
     
+    @State private var showToast = false
+    @State private var toastMessage = ""
+    
     // For external trigger from other views
     static var sharedAddSheetTrigger = PassthroughSubject<UIImage, Never>() // for searchview
     // New Combine storage
@@ -153,7 +156,26 @@ struct InventoryView: View {
                 addItemSheet
             }
         }
+        .overlay(
+            Group {
+                if showToast {
+                    Text(toastMessage)
+                        .font(.subheadline)
+                        .padding()
+                        .background(Color.black.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
+            }
+            .animation(.easeInOut(duration: 0.5), value: showToast)
+            .padding(.top, 60),
+            alignment: .top
+        )
     }
+    
+    
     
     // MARK: - Delete
     private func deleteItems(at offsets: IndexSet) {
@@ -226,6 +248,15 @@ struct InventoryView: View {
                         )
                         showAddSheet = false
                         clearAddItemFields()
+                        
+                        // ✅ Show Toast Message
+                        toastMessage = "Item added to inventory"
+                        showToast = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            withAnimation {
+                                showToast = false
+                            }
+                        }
                     }
                     .disabled(newName.isEmpty)
                 }
