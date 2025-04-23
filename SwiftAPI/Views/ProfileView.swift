@@ -34,11 +34,6 @@ struct ProfileView: View {
                 }
 
                 Section(header: Text("User Settings")) {
-                    Picker("Preferred Currency", selection: $preferredCurrency) {
-                        ForEach(currencies, id: \.self) { currency in
-                            Text(currency)
-                        }
-                    }
 
                     Toggle("Dark Mode", isOn: $isDarkMode)
                 }

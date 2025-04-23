@@ -14,59 +14,66 @@ public struct RegisterView: View {
     @State private var username: String = ""
     @State private var displayName: String = ""
     
+    @State private var showAlert: Bool = false
+    @State private var alertMessage: String = ""
+
     @Environment(\.presentationMode) var presentationMode
 
     public var body: some View {
         NavigationView {
-            VStack {
-                Image("EZ_Flip-removebg-preview 1")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 380, height: 350)
-
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                        .background(Color.white.opacity(0.2))
-                        .frame(width: 350, height: 420)
+            ScrollView {
+                VStack(spacing: 24) {
+                    Text("Create Account")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.top, 40)
 
                     VStack(spacing: 16) {
                         Group {
-                            TextField("Email", text: $email)
-                            SecureField("Password", text: $password)
-                            TextField("Username", text: $username)
-                            TextField("Display Name", text: $displayName)
-                        }
-                        .padding()
-                        .frame(height: 45)
-                        .background(Color.white)
-                        .cornerRadius(8)
-                        .shadow(radius: 2)
-                        .padding(.horizontal)
-
-                        Button(action: {
-                            registerUser()
-                        }) {
-                            Text("Register")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.black)
-                                .cornerRadius(8)
+                            CustomTextField("Email", text: $email, isSecure: false)
+                            CustomTextField("Password", text: $password, isSecure: true)
+                            CustomTextField("Username", text: $username, isSecure: false)
+                            CustomTextField("Display Name", text: $displayName, isSecure: false)
                         }
                         .padding(.horizontal)
                     }
-                    .padding()
+
+                    Button(action: {
+                        // Validate input fields
+                        if email.isEmpty || password.isEmpty || username.isEmpty || displayName.isEmpty {
+                            alertMessage = "All fields are required!"
+                            showAlert = true
+                        } else {
+                            registerUser()
+                            hideKeyboard()
+                        }
+                    }) {
+                        Text("Register")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.black)
+                            .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 10)
                 }
+                .padding(.bottom, 40)
             }
-            .padding()
+            .background(Color(.systemGroupedBackground))
+            .ignoresSafeArea(.keyboard) // this is key
+            .onTapGesture {
+                hideKeyboard()
+            }
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            }
         }
     }
 
     func registerUser() {
-        guard let url = URL(string: "https://ezflip.onrender.com/auth/register")
-        else { return }
+        guard let url = URL(string: "https://ezflip.onrender.com/auth/register") else { return }
 
         let body: [String: Any] = [
             "email": email,
@@ -92,5 +99,32 @@ public struct RegisterView: View {
                 print("Registration Error:", error.localizedDescription)
             }
         }.resume()
+    }
+}
+
+struct CustomTextField: View {
+    var placeholder: String
+    @Binding var text: String
+    var isSecure: Bool
+
+    init(_ placeholder: String, text: Binding<String>, isSecure: Bool = false) {
+        self.placeholder = placeholder
+        self._text = text
+        self.isSecure = isSecure
+    }
+
+    var body: some View {
+        Group {
+            if isSecure {
+                SecureField(placeholder, text: $text)
+            } else {
+                TextField(placeholder, text: $text)
+                    .autocapitalization(.none)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
+        .shadow(color: .gray.opacity(0.2), radius: 3, x: 0, y: 2)
     }
 }
